@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お別れ空間｜ひすい野ヴィラ - 富山県朝日町の自由葬</title>
+<meta name="description" content="ひすい野ヴィラのお別れ空間。温かな木目調祭壇、地元天然石の香炉、メモリアルコーナーで、大切な方との最後の時間を。朝日・入善・黒部エリア対応。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --wood-dark:    #7a5c3e;
+  --wood-mid:     #a07850;
+  --wood-light:   #c4a06a;
+  --orange-warm:  #e8a96a;
+  --orange-pale:  #f5e6d3;
+  --orange-faint: #faf3eb;
+  --gray-dark:    #4a4845;
+  --gray-mid:     #7c7874;
+  --gray-light:   #b8b4b0;
+  --gray-faint:   #f0edea;
+  --cream:        #faf7f3;
+  --white:        #ffffff;
+  --charcoal:     #2e2b28;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--cream);
+  color: var(--charcoal);
+  line-height: 1.9;
+  font-weight: 300;
+}
+
+/* ─────────────────────────────────────────
+   REVEAL ANIMATION
+───────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.15s; }
+.reveal-delay-2 { transition-delay: 0.3s; }
+.reveal-delay-3 { transition-delay: 0.45s; }
+
+/* ─────────────────────────────────────────
+   SECTION COMMON
+───────────────────────────────────────── */
+section {
+  padding: 100px 40px;
+}
+.section-inner {
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.section-label {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  color: var(--wood-mid);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.section-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: clamp(24px, 3.2vw, 38px);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--charcoal);
+  margin-bottom: 20px;
+}
+.section-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--wood-mid);
+  margin: 0 auto 52px;
+}
+.section-divider.left { margin: 0 0 52px; }
+
+/* ─────────────────────────────────────────
+   HERO SECTION
+───────────────────────────────────────── */
+.hero {
+  position: relative;
+  height: 92vh;
+  min-height: 600px;
+  display: flex;
+  align-items: flex-end;
+  padding: 0;
+  overflow: hidden;
+}
+.hero-bg {
+  position: absolute;
+  inset: 0;
+  background-image: url('NKN_0763.JPG');
+  background-size: cover;
+  background-position: center 30%;
+  opacity: 0.52;
+}
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(20,15,10,0.25) 0%,
+    rgba(20,15,10,0.65) 70%,
+    rgba(20,15,10,0.82) 100%
+  );
+}
+.hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 0 60px 80px;
+  max-width: 820px;
+}
+.hero-label {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  color: var(--orange-warm);
+  text-transform: uppercase;
+  margin-bottom: 20px;
+}
+.hero-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: clamp(28px, 4vw, 52px);
+  font-weight: 300;
+  line-height: 1.55;
+  color: var(--white);
+  margin-bottom: 28px;
+}
+.hero-title em {
+  font-style: normal;
+  color: var(--orange-warm);
+}
+.hero-desc {
+  font-size: 15px;
+  line-height: 2.0;
+  color: rgba(255,255,255,0.82);
+  max-width: 560px;
+}
+.hero-capacity {
+  display: inline-block;
+  margin-top: 22px;
+  padding: 8px 20px;
+  border: 1px solid rgba(255,255,255,0.35);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: rgba(255,255,255,0.75);
+}
+
+/* ─────────────────────────────────────────
+   INTRO SECTION
+───────────────────────────────────────── */
+.intro {
+  background: var(--white);
+  padding: 100px 40px;
+}
+.intro-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+.intro-image-wrap {
+  position: relative;
+}
+.intro-image-wrap img {
+  width: 100%;
+  height: 480px;
+  object-fit: cover;
+  display: block;
+}
+.intro-image-accent {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 100px;
+  height: 100px;
+  background: var(--orange-pale);
+  z-index: -1;
+}
+.intro-text .lead {
+  font-size: 16px;
+  line-height: 2.1;
+  color: var(--gray-dark);
+  margin-bottom: 32px;
+}
+
+/* ─────────────────────────────────────────
+   3 FEATURES SECTION
+───────────────────────────────────────── */
+.features {
+  background: var(--cream);
+  padding: 100px 40px;
+}
+.features-header {
+  text-align: center;
+  margin-bottom: 80px;
+}
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+.feature-card {
+  background: var(--white);
+  border: 1px solid var(--gray-light);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.05);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  overflow: hidden;
+}
+.feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.10);
+}
+.feature-img {
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  display: block;
+}
+.feature-body {
+  padding: 32px 28px 36px;
+}
+.feature-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 300;
+  color: var(--orange-pale);
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.feature-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--charcoal);
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--gray-faint);
+}
+.feature-desc {
+  font-size: 14px;
+  line-height: 1.95;
+  color: var(--gray-dark);
+}
+
+/* ─────────────────────────────────────────
+   STONE ACCENT SECTION
+───────────────────────────────────────── */
+.stone-section {
+  background: var(--charcoal);
+  padding: 100px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.stone-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0px,
+      rgba(255,255,255,0.02) 1px,
+      transparent 2px,
+      transparent 12px
+    );
+}
+.stone-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+}
+.stone-text .section-label { color: var(--orange-warm); }
+.stone-text .section-title { color: var(--white); }
+.stone-text .section-divider { background: var(--orange-warm); }
+.stone-text p {
+  font-size: 15px;
+  line-height: 2.05;
+  color: rgba(255,255,255,0.72);
+  margin-bottom: 20px;
+}
+.stone-img {
+  width: 100%;
+  height: 460px;
+  object-fit: cover;
+  display: block;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ─────────────────────────────────────────
+   LANDSCAPE SECTION
+───────────────────────────────────────── */
+.landscape {
+  position: relative;
+  height: 420px;
+  overflow: hidden;
+}
+.landscape img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  display: block;
+  opacity: 0.6;
+}
+.landscape-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(46,43,40,0.75) 0%,
+    rgba(46,43,40,0.3) 60%,
+    transparent 100%
+  );
+  display: flex;
+  align-items: center;
+  padding: 0 80px;
+}
+.landscape-quote {
+  max-width: 480px;
+}
+.landscape-quote blockquote {
+  font-family: 'Noto Serif JP', serif;
+  font-size: clamp(18px, 2.5vw, 26px);
+  font-weight: 300;
+  line-height: 1.75;
+  color: var(--white);
+  margin-bottom: 20px;
+}
+.landscape-quote cite {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--orange-warm);
+  font-style: normal;
+}
+
+/* ─────────────────────────────────────────
+   PROMISE SECTION
+───────────────────────────────────────── */
+.promise {
+  background: var(--orange-faint);
+  padding: 100px 40px;
+}
+.promise-inner {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+.promise-card {
+  background: var(--white);
+  border: 1px solid var(--orange-pale);
+  padding: 60px 56px;
+  box-shadow: 0 4px 32px rgba(168,112,64,0.08);
+  position: relative;
+}
+.promise-card::before,
+.promise-card::after {
+  content: '◇';
+  position: absolute;
+  color: var(--wood-light);
+  font-size: 16px;
+  letter-spacing: 6px;
+}
+.promise-card::before { top: 24px; left: 50%; transform: translateX(-50%); }
+.promise-card::after  { bottom: 24px; left: 50%; transform: translateX(-50%); }
+.promise-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: clamp(18px, 2.5vw, 26px);
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--charcoal);
+  margin-bottom: 32px;
+  padding-bottom: 32px;
+  border-bottom: 1px solid var(--orange-pale);
+}
+.promise-text {
+  font-size: 15px;
+  line-height: 2.1;
+  color: var(--gray-dark);
+  margin-bottom: 20px;
+}
+.promise-sign {
+  display: inline-block;
+  margin-top: 32px;
+  padding: 14px 40px;
+  background: var(--orange-warm);
+  color: var(--white);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.12em;
+  text-decoration: none;
+  border-radius: 2px;
+  transition: background 0.3s ease, transform 0.2s ease;
+  cursor: pointer;
+}
+.promise-sign:hover {
+  background: var(--wood-mid);
+  transform: translateY(-2px);
+}
+
+/* ─────────────────────────────────────────
+   FAQ SECTION (AIO対策)
+───────────────────────────────────────── */
+.faq {
+  background: var(--white);
+  padding: 100px 40px;
+}
+.faq-list {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.faq-item {
+  border-bottom: 1px solid var(--gray-faint);
+  padding: 32px 0;
+}
+.faq-item:first-child { border-top: 1px solid var(--gray-faint); }
+.faq-q {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 400;
+  color: var(--charcoal);
+  line-height: 1.65;
+  list-style: none;
+  user-select: none;
+}
+.faq-q::before {
+  content: 'Q';
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  font-weight: 400;
+  color: var(--orange-warm);
+  flex-shrink: 0;
+  line-height: 1.3;
+}
+.faq-q-arrow {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--wood-light);
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+.faq-item.open .faq-q-arrow { transform: rotate(180deg); }
+.faq-a {
+  display: none;
+  padding: 20px 0 4px 38px;
+  font-size: 14px;
+  line-height: 2.0;
+  color: var(--gray-dark);
+}
+.faq-item.open .faq-a { display: block; }
+
+/* ─────────────────────────────────────────
+   PHOTO GRID SECTION
+───────────────────────────────────────── */
+.gallery-strip {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-rows: 300px;
+  gap: 4px;
+  overflow: hidden;
+}
+.gallery-strip img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: brightness(0.92);
+  transition: filter 0.4s ease, transform 0.4s ease;
+}
+.gallery-strip img:hover {
+  filter: brightness(1);
+  transform: scale(1.03);
+}
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .features-grid { grid-template-columns: 1fr 1fr; }
+  .features-grid .feature-card:last-child {
+    grid-column: 1 / -1;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+}
+@media (max-width: 768px) {
+  section { padding: 70px 24px; }
+  .hero-content { padding: 0 28px 56px; }
+  .intro-grid { grid-template-columns: 1fr; gap: 40px; }
+  .intro-image-wrap img { height: 300px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .features-grid .feature-card:last-child {
+    grid-column: auto;
+    max-width: none;
+  }
+  .stone-grid { grid-template-columns: 1fr; gap: 40px; }
+  .stone-img { height: 300px; }
+  .landscape-overlay { padding: 0 28px; }
+  .promise-card { padding: 44px 28px; }
+  .gallery-strip { grid-template-columns: 1fr 1fr; grid-template-rows: 200px 200px; }
+  .gallery-strip img:first-child { grid-column: 1 / -1; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     HERO
+═══════════════════════════════════ -->
+<section class="hero" aria-label="お別れ空間 メインビジュアル">
+  <div class="hero-bg" role="img" aria-label="ひすい野ヴィラの温かな祭壇空間"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <span class="hero-label reveal visible">Farewell Space — Hisuino Villa</span>
+    <h1 class="hero-title reveal visible">
+      式場全体が、大切な方へ<br>
+      <em>「ありがとう」</em>を伝える祭壇に。
+    </h1>
+    <p class="hero-desc reveal visible">
+      尊い人生への敬意あるご供養のため、<br>
+      あたたかなご縁と思い出が、<br>
+      故人様を中心に集う場所。
+    </p>
+    <span class="hero-capacity reveal visible">最適ご参列人数：15〜40名様 ／ 全館拡張で最大60名様まで対応可</span>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     INTRO（リード文）
+═══════════════════════════════════ -->
+<section class="intro" aria-labelledby="intro-heading">
+  <div class="section-inner">
+    <div class="intro-grid">
+      <div class="intro-image-wrap reveal">
+        <img
+          src="NKN_0981.JPG"
+          alt="ひすい野ヴィラ スタッフがメモリアルコーナーを丁寧に整えている様子"
+          loading="lazy"
+        >
+        <div class="intro-image-accent"></div>
+      </div>
+      <div class="intro-text">
+        <span class="section-label reveal">CONCEPT</span>
+        <h2 class="section-title reveal" id="intro-heading">
+          ご自宅のリビングの延長のような、<br>
+          あたたかいお別れの場所。
+        </h2>
+        <div class="section-divider left reveal"></div>
+        <p class="lead reveal">
+          ひすい野ヴィラのお別れ空間は<br>形式や宗教にとらわれることなく<br>「みなさまらしいお別れ」を<br>自由に表現できる場所です。
+        </p>
+        <p class="lead reveal reveal-delay-1">
+          一体感を何よりも大切にした空間設計で<br>みなさまの想いが故人様を中心に集まり<br>あたたかな最後の時間をお過ごしいただけます。
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     GALLERY STRIP
+═══════════════════════════════════ -->
+<div class="gallery-strip" aria-label="施設ギャラリー">
+  <img src="NKN_0763.JPG" alt="ひすい野ヴィラ 祭壇全景。グリーンと白を基調にした温かな洋風祭壇" loading="lazy">
+  <img src="NKN_0981.JPG" alt="ひすい野ヴィラ スタッフとメモリアルコーナー" loading="lazy">
+  <img src="NKN_0736.JPG" alt="朝日・入善・黒部産の地元天然石を使用した香炉石" loading="lazy">
+</div>
+
+<!-- ══════════════════════════════
+     3 FEATURES
+═══════════════════════════════════ -->
+<section class="features" aria-labelledby="features-heading">
+  <div class="section-inner">
+    <div class="features-header">
+      <span class="section-label reveal">FEATURES</span>
+      <h2 class="section-title reveal" id="features-heading">
+        空間と祭壇の<br>3つのこだわり
+      </h2>
+      <div class="section-divider reveal"></div>
+    </div>
+
+    <div class="features-grid">
+
+      <!-- こだわり1 -->
+      <article class="feature-card reveal">
+        <img
+          class="feature-img"
+          src="NKN_0763.JPG"
+          alt="ひすい野ヴィラの祭壇。木目調と白・グリーンのお花が調和した洋風スタイル"
+          loading="lazy"
+        >
+        <div class="feature-body">
+          <div class="feature-num">01</div>
+          <h3 class="feature-title">
+            想いが真っ直ぐに届く、<br>直線レイアウトと温かな洋風祭壇
+          </h3>
+          <p class="feature-desc">
+            木目調をベースに白やグリーンを基調とした造花で<br>自然な温かみを表現しました。<br>ご寺院もお参りのみなさまも<br>故人様と「一直線に向かい合う」レイアウトで、<br>想いが故人様へ真っ直ぐに届く<br>葬送のひとときをお過ごしいただけます。
+          </p>
+        </div>
+      </article>
+
+      <!-- こだわり2 -->
+      <article class="feature-card reveal reveal-delay-1">
+        <img
+          class="feature-img"
+          src="朝日_入善_黒部の山川海から拾い集められ_宝石と同じ工程で磨き上げられた天然石たちの写真_14日余り磨きをかけ_扇状地で地元を支えた故人さまのご供養の焼香所にふさわしい100人100色の輝きのある香炉石となっている_.jpeg"
+          alt="朝日・入善・黒部の山川海から集められ、宝石と同じ工程で磨き上げられた天然石の香炉石"
+          loading="lazy"
+        >
+        <div class="feature-body">
+          <div class="feature-num">02</div>
+          <h3 class="feature-title">
+            ふるさとへの感謝を添える、<br>地元天然石の香炉
+          </h3>
+          <p class="feature-desc">
+            ご焼香の香炉には、<br>朝日・入善・黒部の山川海から集められた<br>天然石をあしらっています。<br>宝石と同じ工程で14日余り磨き上げ、<br>地元を支えた故人様への感謝にふさわしい<br>100人100色の輝きを持つ、<br>ひすい野ヴィラならではのしつらえです。
+          </p>
+        </div>
+      </article>
+
+      <!-- こだわり3 -->
+      <article class="feature-card reveal reveal-delay-2">
+        <img
+          class="feature-img"
+          src="NKN_0981.JPG"
+          alt="ひすい野ヴィラ メモリアルコーナー。趣味のお品物や写真アルバムを自由に飾れるスペース"
+          loading="lazy"
+        >
+        <div class="feature-body">
+          <div class="feature-num">03</div>
+          <h3 class="feature-title">
+            その人らしさを彩る、<br>自由な「メモリアルコーナー」
+          </h3>
+          <p class="feature-desc">
+            趣味のお品物やご家族からのお手紙などを<br>館内中自由にお飾りすることが可能。<br>「その人らしい」感謝の空間づくりを<br>スタッフがお手伝いさせていただきます。
+          </p>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     STONE SECTION（香炉石の物語）
+═══════════════════════════════════ -->
+<section class="stone-section" aria-labelledby="stone-heading">
+  <div class="section-inner">
+    <div class="stone-grid">
+      <div class="stone-text">
+        <span class="section-label reveal">OUR PHILOSOPHY</span>
+        <h2 class="section-title reveal" id="stone-heading">
+          この土地に生きた証を、<br>石に宿して。
+        </h2>
+        <div class="section-divider left reveal"></div>
+        <p class="reveal">
+          朝日・入善・黒部の山川海から<br>丁寧に拾い集められた天然石たちは、<br>宝石と同じ工程で14日余りをかけて<br>磨き上げられます。
+        </p>
+        <p class="reveal reveal-delay-1">
+          この地域を支えてきた故人様のご供養にふさわしい、<br>100人100色の輝きを持つ香炉石。<br>ひとつとして同じ石はありません。
+        </p>
+        <p class="reveal reveal-delay-2">
+          それはそのまま、<br>世界にたった一人の「大切な方」の物語を表しています。
+        </p>
+      </div>
+      <div class="reveal reveal-delay-1">
+        <img
+          class="stone-img"
+          src="Gemini_Generated_Image___2_.png"
+          alt="地元天然石を使ったひすい野ヴィラオリジナルの香炉。煙が静かに立ち上る"
+          loading="lazy"
+        >
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     LANDSCAPE BREAK
+═══════════════════════════════════ -->
+<div class="landscape" aria-hidden="true">
+  <img
+    src="DJI_0333.JPG"
+    alt="ひすい野ヴィラが建つ富山県朝日町の扇状地。山から海へと続く豊かな自然"
+    loading="lazy"
+  >
+  <div class="landscape-overlay">
+    <div class="landscape-quote reveal">
+      <blockquote>
+        「時間の質で選ぶ、自由なお葬式。」
+      </blockquote>
+      <cite>HISUINO VILLA — 朝日入善黒部の方の葬送会館</cite>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     PROMISE
+═══════════════════════════════════ -->
+<section class="promise" aria-labelledby="promise-heading">
+  <div class="promise-inner">
+    <span class="section-label reveal" style="text-align:center;display:block;">PROMISE</span>
+    <h2 class="section-title reveal" id="promise-heading" style="text-align:center;margin-bottom:52px;">
+      私たちからのお約束
+    </h2>
+
+    <div class="promise-card reveal">
+      <p class="promise-title">
+        全社を挙げて、皆様の想いに伴走いたします。
+      </p>
+      <p class="promise-text">
+        従来の形式とは少し違う空間に、<br>最初は戸惑われる方もいらっしゃるかもしれません。<br>
+        しかし、どうかご安心ください。
+      </p>
+      <p class="promise-text">
+        故人様へ想いあるみなさまが、<br>快適かつあたたかいお別れのお時間をお過ごしいただき、<br>世界にたった一人の大切な方にぴったりな<br>葬送のひとときをご提供できますよう、<br>全社を挙げてお手伝いさせていただきます。
+      </p>
+      <p class="promise-text">
+        不安なこと、わからないことは、<br>いつでも私たち高松葬祭にお預けください。
+      </p>
+      <a href="#contact" class="promise-sign">まずはご相談・見学のお問い合わせ</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     FAQ（AIO・SEO対策）
+═══════════════════════════════════ -->
+<section class="faq" aria-labelledby="faq-heading">
+  <div class="section-inner">
+    <div style="text-align:center;margin-bottom:60px;">
+      <span class="section-label reveal">FAQ</span>
+      <h2 class="section-title reveal" id="faq-heading">よくあるご質問</h2>
+      <div class="section-divider reveal"></div>
+    </div>
+
+    <dl class="faq-list">
+
+      <div class="faq-item reveal">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          ひすい野ヴィラのお別れ空間の広さ・収容人数を教えてください。
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">
+          最適なご参列人数は15〜40名様です。全館をご利用いただける拡張プランでは最大60名様まで対応可能です。少人数の家族葬から、ご親族・お知り合いを広くお招きする葬儀まで、柔軟にご対応いたします。
+        </dd>
+      </div>
+
+      <div class="faq-item reveal">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          宗教・宗派の制限はありますか？
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">
+          特定の宗教・宗派に限定しておりません。仏式・神式・キリスト教式はもちろん、無宗教の「自由葬」にも対応いたします。ご希望のスタイルをお気軽にご相談ください。
+        </dd>
+      </div>
+
+      <div class="faq-item reveal">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          祭壇のお花はどの程度自由にカスタマイズできますか？
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">
+          木目調ベースの洋風祭壇はそのままに、お花の色味やボリューム、造花と生花の組み合わせなどをご家族のご希望に合わせてアレンジできます。費用が不透明に膨らまないよう、プランナーがご予算内でご提案いたします。
+        </dd>
+      </div>
+
+      <div class="faq-item reveal">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          メモリアルコーナーには何を飾れますか？
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">
+          趣味のお道具、写真アルバム、ご家族からのお手紙、好きだった食べ物やお酒など、故人様の人生を物語るものであれば基本的に自由に飾っていただけます。サッカーボールやカメラ機材など、個性的なお品物のご相談も歓迎いたします。
+        </dd>
+      </div>
+
+      <div class="faq-item reveal">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          地元天然石の香炉石について詳しく教えてください。
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">
+          朝日・入善・黒部の山川海から丁寧に拾い集めた天然石を、宝石と同じ工程で14日余りかけて磨き上げたオリジナルの香炉石です。同じ石は2つとなく、故人様が歩まれたこの扇状地への感謝と愛着が静かに伝わる、ひすい野ヴィラならではのしつらえです。
+        </dd>
+      </div>
+
+      <div class="faq-item reveal">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          ひすい野ヴィラのグランドオープン日はいつですか？
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">
+          2026年5月26日（火）にグランドオープンいたします。それに先立ち、見学・ご相談のお問い合わせを随時受け付けております。
+        </dd>
+      </div>
+
+    </dl>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     SCHEMA.ORG（構造化データ）
+     AIO・SEO対策
+═══════════════════════════════════ -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "ひすい野ヴィラのお別れ空間の収容人数を教えてください。",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "最適なご参列人数は15〜40名様です。全館拡張プランでは最大60名様まで対応可能です。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "ひすい野ヴィラは宗教・宗派を選ばず利用できますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "はい。仏式・神式・キリスト教式・無宗教の自由葬など、宗教・宗派の制限なくご利用いただけます。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "ひすい野ヴィラのグランドオープンはいつですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "2026年5月26日にグランドオープン予定です。富山県朝日町に位置し、火葬場まで車で2分の立地です。"
+      }
+    }
+  ]
+}
+</script>
+
+<script>
+/* ──────────────────────────
+   スクロールアニメーション
+─────────────────────────── */
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+/* ──────────────────────────
+   FAQ アコーディオン
+─────────────────────────── */
+document.querySelectorAll('.faq-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    // 他を閉じる
+    document.querySelectorAll('.faq-item.open').forEach(el => {
+      el.classList.remove('open');
+      el.querySelector('.faq-q').setAttribute('aria-expanded', 'false');
+    });
+    if (!isOpen) {
+      item.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  });
+  // キーボード対応
+  btn.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      btn.click();
+    }
+  });
+});
+</script>
+
+</body>
+</html>

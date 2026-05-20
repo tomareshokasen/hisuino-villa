@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ひすい野ヴィラ｜寝室・浴室・アメニティのご案内</title>
+<meta name="description" content="ひすい野ヴィラの寝室・浴室・アメニティをご紹介。大切なご家族との時間を、ホテルのような上質な空間でお過ごしください。">
+
+<!-- ナレッジ §4: フォント読み込み -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+
+<style>
+/* ══════════════════════════════════════════
+   ナレッジ §2: カラーパレット（全変数）
+══════════════════════════════════════════ */
+:root {
+  /* ウッド系 */
+  --wood-dark:    #7a5c3e;
+  --wood-mid:     #a07850;
+  --wood-light:   #c4a06a;
+  /* オレンジ系 */
+  --orange-warm:  #e8a96a;
+  --orange-pale:  #f5e6d3;
+  --orange-faint: #faf3eb;
+  /* グレー系 */
+  --gray-dark:    #4a4845;
+  --gray-mid:     #7c7874;
+  --gray-light:   #b8b4b0;
+  --gray-faint:   #f0edea;
+  /* ベース */
+  --cream:        #faf7f3;
+  --white:        #ffffff;
+  --charcoal:     #2e2b28;
+}
+
+/* ══════════════════════════════════════════
+   リセット & ベーススタイル
+══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Noto Sans JP', sans-serif;
+  background: var(--cream);
+  color: var(--charcoal);
+  line-height: 1.85;
+  overflow-x: hidden;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ══════════════════════════════════════════
+   ナレッジ §5-④: スクロールアニメーション
+══════════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-d1 { transition-delay: 0.15s; }
+.reveal-d2 { transition-delay: 0.28s; }
+.reveal-d3 { transition-delay: 0.40s; }
+
+/* ── ヒーロー用アニメーション ── */
+@keyframes heroFadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ══════════════════════════════════════════
+   ナレッジ §7: セクション基本構造
+══════════════════════════════════════════ */
+section { padding: 100px 40px; }   /* §5-①: 余白100px確保 */
+.section-inner {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ══════════════════════════════════════════
+   ナレッジ §6: セクション見出しパターン
+══════════════════════════════════════════ */
+.section-label {
+  display: block;
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--wood-mid);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--charcoal);
+  margin-bottom: 24px;
+}
+.section-divider {
+  width: 40px;
+  height: 1px;
+  background: var(--wood-mid);
+  margin: 0 auto 48px;
+}
+
+/* ══════════════════════════════════════════
+   HERO
+   ナレッジ §5-⑤: 写真に必ずオーバーレイを入れる
+══════════════════════════════════════════ */
+.hero {
+  position: relative;
+  height: 100vh;
+  min-height: 600px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.hero__photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  opacity: 0.55;   /* §5-⑤: 暗さ調整 */
+}
+
+/* 下から暗くなるグラデーションオーバーレイ */
+.hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(30,25,20,0.20) 0%,
+    rgba(30,25,20,0.15) 40%,
+    rgba(30,25,20,0.68) 75%,
+    rgba(30,25,20,0.92) 100%
+  );
+}
+
+.hero__content {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 40px 80px;
+}
+
+/* §4: キャッチコピー 40〜52px / Noto Serif JP / 300〜400 */
+.hero__eyebrow {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  letter-spacing: 0.3em;
+  color: var(--wood-light);
+  margin-bottom: 20px;
+  animation: heroFadeUp 0.9s ease both;
+  animation-delay: 0.3s;
+}
+
+.hero__title {
+  font-family: 'Noto Serif JP', serif;
+  font-size: clamp(2.2rem, 5vw, 3.2rem);
+  font-weight: 300;
+  line-height: 1.5;
+  color: var(--white);
+  margin-bottom: 20px;
+  animation: heroFadeUp 0.9s ease both;
+  animation-delay: 0.55s;
+}
+
+.hero__title em {
+  font-style: normal;
+  color: var(--orange-warm);
+}
+
+.hero__lead {
+  font-size: 15px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.78);
+  line-height: 2;
+  max-width: 500px;
+  animation: heroFadeUp 0.9s ease both;
+  animation-delay: 0.8s;
+}
+
+/* ── 下スクロールナビ ── */
+.hero__nav {
+  display: flex;
+  gap: 32px;
+  margin-top: 32px;
+  flex-wrap: wrap;
+  animation: heroFadeUp 0.9s ease both;
+  animation-delay: 1s;
+}
+.hero__nav a {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 11px;
+  letter-spacing: 0.28em;
+  color: var(--wood-light);
+  text-decoration: none;
+  padding-bottom: 3px;
+  border-bottom: 0.5px solid rgba(196,160,106,0.4);
+  transition: color 0.25s, border-color 0.25s;
+}
+.hero__nav a:hover {
+  color: var(--orange-warm);
+  border-color: var(--orange-warm);
+}
+
+/* ══════════════════════════════════════════
+   ナレッジ §5-②: 木目テクスチャ帯
+══════════════════════════════════════════ */
+.wood-band {
+  background-color: var(--wood-light);
+  background-image: repeating-linear-gradient(
+    92deg,
+    transparent 0px,
+    rgba(255,255,255,0.04) 1px,
+    transparent 2px,
+    transparent 10px
+  );
+  padding: 18px 40px;
+  text-align: center;
+}
+.wood-band p {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 13px;
+  letter-spacing: 0.35em;
+  color: var(--white);
+}
+
+/* ══════════════════════════════════════════
+   §7: 左右2カラムレイアウト（テキスト＋写真）
+══════════════════════════════════════════ */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+}
+
+/* ── 写真ブロック ── */
+.col-photo {
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+.col-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.9s ease;
+}
+.col-photo:hover img { transform: scale(1.04); }
+
+/* ── テキストブロック ── */
+.col-text {}
+
+.col-text .section-label { margin-bottom: 10px; }
+.col-text .section-title { font-size: clamp(20px, 2.5vw, 28px); margin-bottom: 16px; }
+.col-text .section-divider { margin: 0 0 28px; }
+
+.col-text p {
+  font-size: 15px;
+  font-weight: 300;
+  color: var(--gray-dark);
+  line-height: 2.0;
+  margin-bottom: 20px;
+}
+
+/* ── 特徴リスト ── */
+.feature-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+.feature-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--gray-dark);
+  line-height: 1.7;
+}
+.feature-list li::before {
+  content: '◇';
+  color: var(--wood-light);
+  font-size: 10px;
+  margin-top: 4px;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════
+   ナレッジ §6: カードコンポーネント
+══════════════════════════════════════════ */
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-light);
+  padding: 32px 28px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+
+
+/* ══════════════════════════════════════════
+   浴室セクション（全面写真 + テキストオーバーレイ）
+   ナレッジ §5-⑤
+══════════════════════════════════════════ */
+.bath-hero {
+  position: relative;
+  min-height: 500px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+.bath-hero__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.45;
+}
+.bath-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(30,25,20,0.88) 0%,
+    rgba(30,25,20,0.60) 45%,
+    rgba(30,25,20,0.10) 100%
+  );
+}
+.bath-hero__content {
+  position: relative;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 40px;
+  display: grid;
+  grid-template-columns: 520px 1fr;
+  gap: 0;
+  align-items: center;
+}
+.bath-hero__text .section-label { color: var(--wood-light); }
+.bath-hero__text .section-title { color: var(--white); font-size: clamp(20px,2.5vw,28px); margin-bottom: 20px; }
+.bath-hero__text .section-divider { margin: 0 0 28px; }
+.bath-hero__text p {
+  font-size: 15px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.78);
+  line-height: 2.0;
+  margin-bottom: 24px;
+}
+
+
+/* ══════════════════════════════════════════
+   ナレッジ §6: プライマリボタン
+══════════════════════════════════════════ */
+.btn-primary {
+  background: var(--orange-warm);
+  color: var(--white);
+  padding: 14px 36px;
+  border-radius: 2px;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  display: inline-block;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+.btn-primary:hover {
+  background: var(--wood-mid);
+  transform: translateY(-2px);
+}
+
+/* ══════════════════════════════════════════
+   PHILOSOPHYセクション（木目テクスチャ背景）
+══════════════════════════════════════════ */
+.philosophy {
+  background-color: var(--wood-dark);
+  background-image: repeating-linear-gradient(
+    92deg,
+    transparent 0px,
+    rgba(255,255,255,0.03) 1px,
+    transparent 2px,
+    transparent 10px
+  );
+  padding: 100px 40px;
+  text-align: center;
+}
+.philosophy .section-label { color: var(--wood-light); }
+.philosophy .section-title { color: var(--white); }
+.philosophy .section-divider { background: var(--wood-light); margin-bottom: 32px; }
+.philosophy__text {
+  font-size: 15px;
+  font-weight: 300;
+  color: rgba(255,255,255,0.72);
+  line-height: 2.2;
+  max-width: 580px;
+  margin: 0 auto 48px;
+}
+
+/* ── 装飾◇ ── */
+.ornament {
+  color: var(--wood-light);
+  font-size: 14px;
+  letter-spacing: 0.4em;
+  margin-bottom: 16px;
+  display: block;
+}
+
+/* ══════════════════════════════════════════
+   フッター
+══════════════════════════════════════════ */
+footer {
+  background: var(--charcoal);
+  padding: 32px 40px;
+  text-align: center;
+}
+footer p {
+  font-size: 12px;
+  font-weight: 300;
+  color: var(--gray-mid);
+  letter-spacing: 0.12em;
+  line-height: 2;
+}
+
+/* ══════════════════════════════════════════
+   ナレッジ §8: スマートフォン対応
+══════════════════════════════════════════ */
+@media (max-width: 768px) {
+  section { padding: 72px 24px; }
+
+  .hero__content { padding: 0 24px 60px; }
+  .hero__nav { gap: 20px; }
+
+  .wood-band { padding: 14px 24px; }
+
+  .two-col {
+    grid-template-columns: 1fr;  /* スマホでは縦積み */
+    gap: 32px;
+  }
+  /* 写真を先に、テキストを後に */
+  .two-col.reverse-mobile .col-photo { order: -1; }
+
+  .bath-hero__content {
+    grid-template-columns: 1fr;
+    padding: 60px 24px;
+  }
+  .bath-hero__overlay {
+    background: linear-gradient(to bottom, rgba(30,25,20,0.85) 0%, rgba(30,25,20,0.70) 100%);
+  }
+
+  .philosophy { padding: 72px 24px; }
+
+  footer { padding: 28px 24px; }
+
+  /* スマホでボタン最低44px高さ確保 */
+  .btn-primary { padding: 15px 32px; min-height: 44px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════
+  HERO
+  ナレッジ §5-⑤: 写真にオーバーレイ必須
+══════════════════════════ -->
+<section class="hero" aria-label="メインビジュアル">
+  <img
+    class="hero__photo"
+    src="images/bedroom_japanese.png"
+    alt="ひすい野ヴィラ 和モダンのベッドルーム。暖色系照明と和柄のアクセントウォール"
+  >
+  <div class="hero__overlay"></div>
+  <div class="hero__content">
+    <p class="hero__eyebrow">Hisui-no Villa &nbsp;·&nbsp; Bedroom &amp; Amenity</p>
+    <h1 class="hero__title">
+      心と体を休める、<br><em>ホテルのような寛ぎ</em>
+    </h1>
+    <p class="hero__lead">
+      大切な方とのお別れを控えたご家族に、<br>心からの安らぎと快適を。
+    </p>
+    <nav class="hero__nav" aria-label="ページ内ナビゲーション">
+      <a href="#bedroom">寝室</a>
+      <a href="#amenity">アメニティ</a>
+      <a href="#bathroom">浴室</a>
+    </nav>
+  </div>
+</section>
+
+<!-- 木目帯 -->
+<div class="wood-band" aria-hidden="true">
+  <p>完全１棟貸し &nbsp;・&nbsp; 宿泊可 &nbsp;·&nbsp; オールインクルーシブ</p>
+</div>
+
+
+<!-- ══════════════════════════
+  BEDROOM
+  背景: --cream（奇数セクション）
+══════════════════════════ -->
+<section id="bedroom" style="background: var(--cream);">
+  <div class="section-inner">
+
+    <div class="two-col">
+      <!-- 写真（左） -->
+      <div class="col-photo reveal">
+        <img
+          src="images/bedroom_japanese.png"
+          alt="ひすい野ヴィラ 和モダンのベッドルーム。暖色系の間接照明と白いベッドリネン"
+        >
+      </div>
+
+      <!-- テキスト（右） -->
+      <div class="col-text reveal reveal-d1">
+        <span class="section-label">Bedroom</span>
+        <h2 class="section-title">温かな照明と<br>ベッドで深く休む</h2>
+        <div class="section-divider"></div>
+        <p>
+          寝室の照明は明るさを落とし、温かみのある暖色系を採用しています。<br>ホテルに滞在しているかのように、心も体もゆっくりとお休みいただけます。
+        </p>
+        <ul class="feature-list">
+          <li>腰・ひざへの負担に配慮し、お布団ではなくベッドをご用意。</li>
+          <li>寝室は和洋２室。4〜8名様がご一緒にご宿泊いただけます。</li>
+          <li>あえてテレビを置かない、静かに心身を休める空間</li>
+        </ul>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════
+  AMENITY
+  背景: --orange-faint（偶数セクション）
+══════════════════════════ -->
+<section id="amenity" style="background: var(--orange-faint);">
+  <div class="section-inner">
+
+    <div class="two-col reverse-mobile">
+      <!-- テキスト（左） -->
+      <div class="col-text reveal">
+        <span class="section-label">Amenity</span>
+        <h2 class="section-title">急なご宿泊でも<br>安心のアメニティ</h2>
+        <div class="section-divider"></div>
+        <p>
+          お通夜を終えて「やっぱり最後の夜は一緒に過ごしたい」と、<br>その場でお決めになっても大丈夫。<br>手ぶらでお越しいただいても、<br>すぐにお休みいただける設備が整っております。
+        </p>
+        <ul class="feature-list">
+          <li>館内着</li>
+          <li>バスタオル・フェイスタオル</li>
+          <li>歯ブラシ・歯磨き粉・くし</li>
+          <li>石けん・綿棒・カミソリ</li>
+        </ul>
+      </div>
+
+      <!-- 写真（右） -->
+      <div class="col-photo reveal reveal-d1">
+        <img
+          src="images/amenity.jpg"
+          alt="ひすい野ヴィラの宿泊アメニティ。木箱に収められたタオル・洗面用品と浴衣"
+        >
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ══════════════════════════
+  BATHROOM
+  全面写真 + テキストオーバーレイ
+  ナレッジ §5-⑤
+══════════════════════════ -->
+<section id="bathroom" class="bath-hero" aria-label="浴室のご案内">
+  <img
+    class="bath-hero__bg"
+    src="images/bathroom.png"
+    alt="ひすい野ヴィラの浴室。間接照明が灯る広い浴槽"
+  >
+  <div class="bath-hero__overlay"></div>
+  <div class="bath-hero__content">
+    <div class="bath-hero__text reveal">
+      <span class="section-label">Bathroom</span>
+      <h2 class="section-title">ゆったりとした浴室で<br>心身の緊張をほどく</h2>
+      <div class="section-divider"></div>
+      <p>
+        広々とした浴槽と柔らかな間接照明が、<br>その日一日の疲れをやさしく包みます。<br>シャンプー・コンディショナー・ボディソープも揃えております。<br>手ぶらでご利用いただけます。
+      </p>
+    </div>
+    <!-- 右カラムは空（写真が透けて見える余白） -->
+    <div></div>
+  </div>
+</section>
+
+
+<!-- ══════════════════════════
+  PHILOSOPHY
+  木目テクスチャ背景
+  ナレッジ §5-②
+══════════════════════════ -->
+<section class="philosophy" aria-label="ひすい野の想い">
+  <div class="section-inner">
+    <div style="max-width:640px; margin:0 auto;" class="reveal">
+      <span class="section-label">Our Philosophy</span>
+      <span class="ornament"></span>
+      <h2 class="section-title">ご家族の「心と体と時間」を<br>大切にする場所</h2>
+      <div class="section-divider"></div>
+      <p class="philosophy__text">
+        私たちが目指すのは、<br>ご葬儀の数日間において、<br>お客様が心と体と時間を大切にできますよう<br>「楽」の価値を提供することです。
+      </p>
+    </div>
+  </div>
+</section>
+
+
+<!-- フッター -->
+<footer>
+  <p>ひすい野ヴィラ｜有限会社 高松葬祭</p>
+  <p>富山県朝日町 &nbsp;·&nbsp; 火葬場まで車で2分 &nbsp;·&nbsp; 対応エリア：朝日・入善・黒部</p>
+</footer>
+
+
+<!-- ══════════════════════════
+  ナレッジ §5-④: スクロールアニメーション
+  コピペで使えるコード
+══════════════════════════ -->
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+      observer.unobserve(e.target);  /* 一度見えたら監視を外す */
+    }
+  });
+}, { threshold: 0.12 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
