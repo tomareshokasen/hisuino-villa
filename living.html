@@ -46,13 +46,13 @@ section{padding:100px 40px;}
 /* ========== HERO ========== */
 /* ★写真① ヒーロー背景 --- .hero-bg の url() を変更してください
    推奨サイズ: 1920x1080px 以上、横長 */
-.hero{position:relative;height:100vh;min-height:600px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--charcoal);}
+.hero{position:relative;height:100vh;min-height:600px;display:flex;align-items:flex-end;justify-content:flex-start;overflow:hidden;background:var(--charcoal);}
 .hero-bg{position:absolute;inset:0;background-image:url("image/living.jpg");background-size:cover;background-position:center;opacity:.45;animation:slowZoom 20s ease-in-out infinite alternate;}
 @keyframes slowZoom{from{transform:scale(1)}to{transform:scale(1.06)}}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(30,22,12,.3) 0%,rgba(30,22,12,.65) 100%);}
 .hero-deco-l,.hero-deco-r{position:absolute;top:50%;transform:translateY(-50%);width:1px;height:120px;background:linear-gradient(to bottom,transparent,rgba(196,160,106,.5),transparent);}
 .hero-deco-l{left:40px;}.hero-deco-r{right:40px;}
-.hero-content{position:relative;z-index:10;text-align:left;padding:0 24px 0 8%;}
+.hero-content{position:relative;z-index:10;text-align:left;padding:0 24px 12% 8%;}
 .hero-eyebrow{font-family:"Cormorant Garamond",serif;font-size:12px;letter-spacing:.35em;color:var(--wood-light);text-transform:uppercase;margin-bottom:24px;opacity:0;animation:fadeUp .9s ease .2s forwards;}
 .hero-title{font-family:"Noto Serif JP",serif;font-size:clamp(26px,4vw,36px);font-weight:300;line-height:1.55;color:var(--white);margin-bottom:20px;opacity:0;animation:fadeUp .9s ease .45s forwards;}
 .hero-title em{font-style:normal;color:var(--orange-warm);}
