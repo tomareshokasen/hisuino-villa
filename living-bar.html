@@ -3,1139 +3,576 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>リビング & バーコーナー | ひすい野ヴィラ</title>
+  <title>リビング &amp; バーコーナー | ひすい野ヴィラ</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
-
   <style>
-    /* ─── CSS変数（カラーパレット） ─── */
-    :root {
-      --wood-dark:    #7a5c3e;
-      --wood-mid:     #a07850;
-      --wood-light:   #c4a06a;
-      --orange-warm:  #e8a96a;
-      --orange-pale:  #f5e6d3;
-      --orange-faint: #faf3eb;
-      --gray-dark:    #4a4845;
-      --gray-mid:     #7c7874;
-      --gray-light:   #b8b4b0;
-      --gray-faint:   #f0edea;
-      --cream:        #faf7f3;
-      --white:        #ffffff;
-      --charcoal:     #2e2b28;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-
-    body {
-      background-color: var(--cream);
-      color: var(--charcoal);
-      font-family: 'Noto Sans JP', sans-serif;
-      font-weight: 300;
-      line-height: 1.9;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    img { display: block; width: 100%; height: 100%; object-fit: cover; }
-
-    /* ─── スクロールアニメーション ─── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity 0.7s ease, transform 0.7s ease;
-    }
-    .reveal.visible { opacity: 1; transform: translateY(0); }
-    .reveal-delay-1 { transition-delay: 0.1s; }
-    .reveal-delay-2 { transition-delay: 0.2s; }
-    .reveal-delay-3 { transition-delay: 0.3s; }
-    .reveal-delay-4 { transition-delay: 0.4s; }
-
-    /* ─── ナビゲーション ─── */
-    .nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      padding: 20px 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: rgba(250, 247, 243, 0.92);
-      backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(160, 120, 80, 0.12);
-      transition: padding 0.3s ease;
-    }
-
-    .nav-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 17px;
-      font-weight: 400;
-      letter-spacing: 0.15em;
-      color: var(--charcoal);
-      text-decoration: none;
-    }
-
-    .nav-logo span {
-      font-family: 'Noto Serif JP', serif;
-      font-size: 12px;
-      display: block;
-      letter-spacing: 0.2em;
-      color: var(--wood-mid);
-      margin-top: 2px;
-    }
-
-    /* ページ内リンク */
-    .nav-links {
-      display: flex;
-      gap: 32px;
-      list-style: none;
-    }
-
-    .nav-links a {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 12px;
-      letter-spacing: 0.25em;
-      color: var(--gray-mid);
-      text-decoration: none;
-      text-transform: uppercase;
-      transition: color 0.2s;
-    }
-
-    .nav-links a:hover { color: var(--wood-mid); }
-
-    /* ─── ヒーロー（リビング） ─── */
-    .hero {
-      position: relative;
-      height: 100vh;
-      min-height: 600px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      background-color: var(--charcoal);
-    }
-
-    .hero-bg-img {
-      position: absolute;
-      inset: 0;
-      background-image: url('リビング明るめ.png');
-      background-size: cover;
-      background-position: center;
-      opacity: 0.45;
-      animation: slowZoom 20s ease-in-out infinite alternate;
-    }
-
-    @keyframes slowZoom {
-      from { transform: scale(1.0); }
-      to   { transform: scale(1.06); }
-    }
-
-    .hero-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, rgba(30,22,12,0.3) 0%, rgba(30,22,12,0.65) 100%);
-    }
-
-    .hero-deco-left {
-      position: absolute;
-      left: 40px; top: 50%;
-      transform: translateY(-50%);
-      width: 1px; height: 120px;
-      background: linear-gradient(to bottom, transparent, rgba(196,160,106,0.5), transparent);
-    }
-
-    .hero-deco-right {
-      position: absolute;
-      right: 40px; top: 50%;
-      transform: translateY(-50%);
-      width: 1px; height: 120px;
-      background: linear-gradient(to bottom, transparent, rgba(196,160,106,0.5), transparent);
-    }
-
-    .hero-content {
-      position: relative;
-      z-index: 10;
-      text-align: center;
-      padding: 0 24px;
-    }
-
-    .hero-eyebrow {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 12px;
-      letter-spacing: 0.35em;
-      color: var(--wood-light);
-      text-transform: uppercase;
-      margin-bottom: 24px;
-      opacity: 0;
-      animation: fadeUp 0.9s ease 0.2s forwards;
-    }
-
-    .hero-title {
-      font-family: 'Noto Serif JP', serif;
-      font-size: clamp(26px, 4vw, 50px);
-      font-weight: 300;
-      line-height: 1.55;
-      color: var(--white);
-      margin-bottom: 20px;
-      opacity: 0;
-      animation: fadeUp 0.9s ease 0.45s forwards;
-    }
-
-    .hero-title em {
-      font-style: normal;
-      color: var(--orange-warm);
-    }
-
-    .hero-bar-deco {
-      width: 40px;
-      height: 1px;
-      background: var(--orange-warm);
-      margin: 20px auto 28px;
-      opacity: 0;
-      animation: fadeUp 0.9s ease 0.55s forwards;
-    }
-
-    .hero-subtitle {
-      font-size: clamp(13px, 1.5vw, 15px);
-      font-weight: 300;
-      color: rgba(255,255,255,0.72);
-      letter-spacing: 0.08em;
-      opacity: 0;
-      animation: fadeUp 0.9s ease 0.65s forwards;
-    }
-
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: none; }
-    }
-
-    .hero-scroll {
-      position: absolute;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      opacity: 0;
-      animation: fadeUp 0.9s ease 1.2s forwards;
-    }
-
-    .hero-scroll span {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 10px;
-      letter-spacing: 0.3em;
-      color: rgba(255,255,255,0.45);
-      text-transform: uppercase;
-    }
-
-    .scroll-line {
-      width: 1px; height: 40px;
-      background: linear-gradient(to bottom, rgba(196,160,106,0.7), transparent);
-      animation: scrollPulse 2s ease-in-out infinite;
-    }
-
-    @keyframes scrollPulse {
-      0%, 100% { opacity: 0.4; }
-      50%       { opacity: 1; }
-    }
-
-    /* ─── セクション共通 ─── */
-    section { padding: 100px 40px; }
-
-    .section-inner { max-width: 1100px; margin: 0 auto; }
-
-    .section-header {
-      text-align: center;
-      margin-bottom: 64px;
-    }
-
-    .section-label {
-      display: block;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 12px;
-      letter-spacing: 0.3em;
-      color: var(--wood-mid);
-      text-transform: uppercase;
-      margin-bottom: 14px;
-    }
-
-    .section-title {
-      font-family: 'Noto Serif JP', serif;
-      font-size: clamp(22px, 3vw, 34px);
-      font-weight: 400;
-      line-height: 1.6;
-      color: var(--charcoal);
-      margin-bottom: 20px;
-    }
-
-    .section-sub {
-      font-size: 14px;
-      color: var(--gray-mid);
-      line-height: 1.9;
-      max-width: 520px;
-      margin: 0 auto;
-    }
-
-    .section-divider {
-      width: 40px; height: 1px;
-      background: var(--wood-mid);
-      margin: 16px auto 0;
-    }
-
-    /* ─── コンセプト（イントロ） ─── */
-    .concept-section {
-      background: var(--white);
-      padding: 100px 40px;
-    }
-
-    .concept-inner {
-      max-width: 680px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    .concept-quote {
-      font-family: 'Noto Serif JP', serif;
-      font-size: clamp(15px, 2vw, 18px);
-      font-weight: 300;
-      line-height: 2.4;
-      color: var(--charcoal);
-      letter-spacing: 0.06em;
-      padding: 2.5rem 0;
-      border-top: 0.5px solid var(--gray-light);
-      border-bottom: 0.5px solid var(--gray-light);
-      margin: 2rem 0;
-    }
-
-    .concept-quote strong { color: var(--wood-mid); font-weight: 400; }
-
-    /* ─── こだわりカード ─── */
-    .features-section {
-      background: var(--cream);
-    }
-
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 28px;
-      margin-top: 48px;
-    }
-
-    .feature-card {
-      background: var(--white);
-      border: 1px solid rgba(180,160,130,0.18);
-      box-shadow: 0 2px 16px rgba(0,0,0,0.04);
-      padding: 36px 32px;
-      position: relative;
-      overflow: hidden;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .feature-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.09);
-    }
-
-    .feature-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: linear-gradient(to right, var(--wood-mid), var(--wood-light));
-    }
-
-    .feature-num {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 11px;
-      letter-spacing: 0.3em;
-      color: var(--wood-light);
-      margin-bottom: 16px;
-      display: block;
-    }
-
-    .feature-title {
-      font-family: 'Noto Serif JP', serif;
-      font-size: 17px;
-      font-weight: 400;
-      line-height: 1.7;
-      color: var(--charcoal);
-      margin-bottom: 12px;
-    }
-
-    .feature-body {
-      font-size: 13px;
-      color: var(--gray-dark);
-      line-height: 2;
-    }
-
-    .feature-accent {
-      display: block;
-      width: 28px; height: 1px;
-      background: var(--wood-light);
-      margin-top: 18px;
-    }
-
-    /* ─── 写真 + テキスト ─── */
-    .split-section {
-      background: var(--white);
-      padding: 0;
-    }
-
-    .split-inner {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      min-height: 560px;
-    }
-
-    .split-photo {
-      background-image: url('リビング明るめ.png');
-      background-size: cover;
-      background-position: center;
-      min-height: 400px;
-    }
-
-    .split-text {
-      padding: 80px 60px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-    }
-
-    .split-text .section-title {
-      font-size: clamp(20px, 2.5vw, 28px);
-      margin-bottom: 16px;
-    }
-
-    .detail-list {
-      list-style: none;
-      margin-top: 24px;
-    }
-
-    .detail-list li {
-      font-size: 13px;
-      color: var(--gray-dark);
-      padding: 10px 0;
-      border-bottom: 0.5px solid var(--gray-faint);
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      line-height: 1.8;
-    }
-
-    .detail-list li::before {
-      content: '—';
-      color: var(--wood-mid);
-      flex-shrink: 0;
-    }
-
-    /* ─── メッセージカードセクション ─── */
-    .message-section {
-      position: relative;
-      overflow: hidden;
-      background: var(--charcoal);
-      padding: 100px 40px;
-    }
-
-    .message-section::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: url('ひすい野ヴィラ_テーブルでメッセージ記入.JPG');
-      background-size: cover;
-      background-position: center top;
-      opacity: 0.2;
-    }
-
-    .message-section::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: repeating-linear-gradient(
-        90deg,
-        transparent 0px,
-        rgba(196,160,106,0.025) 1px,
-        transparent 2px,
-        transparent 14px
-      );
-    }
-
-    .message-inner {
-      position: relative;
-      z-index: 2;
-      max-width: 700px;
-      margin: 0 auto;
-      text-align: center;
-    }
-
-    .message-inner .section-label { color: var(--wood-light); }
-    .message-inner .section-title { color: var(--white); }
-    .message-inner .section-sub   { color: rgba(255,255,255,0.65); max-width: 480px; }
-
-    .message-box {
-      margin-top: 40px;
-      border: 0.5px solid rgba(196,160,106,0.5);
-      padding: 40px 48px;
-    }
-
-    .message-box p {
-      font-family: 'Noto Serif JP', serif;
-      font-size: 15px;
-      color: rgba(255,255,255,0.82);
-      line-height: 2.6;
-      letter-spacing: 0.06em;
-    }
-
-    /* ─── LINE セクション ─── */
-    .line-section {
-      background: var(--orange-faint);
-      padding: 100px 40px;
-    }
-
-    .line-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: center;
-    }
-
-    .line-badge {
-      display: inline-block;
-      background: var(--orange-warm);
-      color: var(--white);
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 11px;
-      letter-spacing: 0.3em;
-      padding: 6px 20px;
-      margin-bottom: 24px;
-      text-transform: uppercase;
-    }
-
-    .line-body {
-      font-size: 14px;
-      color: var(--gray-dark);
-      line-height: 2;
-      margin-top: 14px;
-    }
-
-    .line-visual {
-      background: var(--white);
-      border: 1px solid rgba(180,160,130,0.18);
-      padding: 40px 32px;
-      text-align: center;
-    }
-
-    .line-icon-wrap {
-      width: 56px; height: 56px;
-      background: #06C755;
-      border-radius: 14px;
-      margin: 0 auto 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .line-icon-wrap svg { width: 30px; height: 30px; fill: white; }
-
-    .line-step { font-size: 13px; color: var(--gray-dark); line-height: 1.7; }
-    .line-step strong {
-      display: block;
-      font-size: 13px;
-      color: var(--charcoal);
-      font-weight: 500;
-      margin-bottom: 2px;
-    }
-
-    .step-bar {
-      width: 1px; height: 28px;
-      background: var(--gray-light);
-      margin: 12px auto;
-    }
-
-    /* ─── セクション区切り（リビング→バー） ─── */
-    .chapter-divider {
-      background: var(--charcoal);
-      padding: 80px 40px;
-      text-align: center;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .chapter-divider::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: repeating-linear-gradient(
-        88deg,
-        transparent 0px,
-        rgba(196,160,106,0.03) 1px,
-        transparent 2px,
-        transparent 18px
-      );
-    }
-
-    .chapter-label {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 11px;
-      letter-spacing: 0.4em;
-      color: var(--wood-light);
-      text-transform: uppercase;
-      margin-bottom: 16px;
-      display: block;
-      position: relative;
-    }
-
-    .chapter-title {
-      font-family: 'Noto Serif JP', serif;
-      font-size: clamp(20px, 3vw, 32px);
-      font-weight: 300;
-      color: var(--white);
-      line-height: 1.7;
-      position: relative;
-    }
-
-    .chapter-title em {
-      font-style: normal;
-      color: var(--orange-warm);
-    }
-
-    .chapter-ornament {
-      color: var(--wood-light);
-      font-size: 14px;
-      letter-spacing: 6px;
-      margin: 24px 0 0;
-      display: block;
-      position: relative;
-    }
-
-    /* ─── ドリンクカード ─── */
-    .drinks-section { background: var(--cream); }
-
-    .drinks-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 32px;
-    }
-
-    .drink-card {
-      background: var(--white);
-      border: 1px solid rgba(180,160,130,0.18);
-      box-shadow: 0 2px 16px rgba(0,0,0,0.05);
-      transition: transform 0.35s ease, box-shadow 0.35s ease;
-      overflow: hidden;
-    }
-
-    .drink-card:hover {
-      transform: translateY(-6px);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.10);
-    }
-
-    .drink-card-img {
-      width: 100%; height: 220px;
-      overflow: hidden;
-      position: relative;
-      background: var(--gray-faint);
-    }
-
-    .drink-card-img img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      transition: transform 0.5s ease;
-    }
-
-    .drink-card:hover .drink-card-img img { transform: scale(1.04); }
-
-    .img-placeholder {
-      width: 100%; height: 100%;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      background: linear-gradient(135deg, var(--orange-faint), var(--orange-pale));
-      gap: 10px;
-    }
-
-    .img-placeholder .icon { font-size: 36px; opacity: 0.5; }
-
-    .img-placeholder .label {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 11px;
-      letter-spacing: 0.2em;
-      color: var(--wood-mid);
-      text-transform: uppercase;
-    }
-
-    .drink-card-body { padding: 28px 28px 32px; }
-
-    .drink-card-label {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 11px;
-      letter-spacing: 0.28em;
-      color: var(--wood-light);
-      text-transform: uppercase;
-      margin-bottom: 10px;
-      display: block;
-    }
-
-    .drink-card-title {
-      font-family: 'Noto Serif JP', serif;
-      font-size: 19px;
-      font-weight: 400;
-      color: var(--charcoal);
-      margin-bottom: 14px;
-      line-height: 1.5;
-    }
-
-    .drink-card-desc { font-size: 14px; color: var(--gray-dark); line-height: 1.9; }
-
-    .drink-card-accent {
-      display: block;
-      width: 28px; height: 1px;
-      background: var(--wood-light);
-      margin: 18px 0 0;
-    }
-
-    /* ─── All Inclusive バナー ─── */
-    .banner-section {
-      background: var(--orange-faint);
-      padding: 80px 40px;
-    }
-
-    .banner-inner { max-width: 860px; margin: 0 auto; text-align: center; }
-
-    .banner-badge {
-      display: inline-block;
-      background: var(--orange-warm);
-      color: var(--white);
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 12px;
-      letter-spacing: 0.3em;
-      padding: 7px 22px;
-      margin-bottom: 28px;
-      text-transform: uppercase;
-    }
-
-    .banner-ornament {
-      color: var(--wood-light);
-      font-size: 16px;
-      letter-spacing: 6px;
-      margin: 24px 0;
-      display: block;
-    }
-
-    .banner-text {
-      font-size: 15px;
-      font-weight: 300;
-      color: var(--gray-dark);
-      line-height: 2.0;
-      max-width: 640px;
-      margin: 0 auto;
-    }
-
-    /* ─── CTA ─── */
-    .cta-section {
-      background: var(--charcoal);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .cta-section::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: repeating-linear-gradient(
-        90deg,
-        transparent 0px,
-        rgba(196,160,106,0.03) 1px,
-        transparent 2px,
-        transparent 14px
-      );
-      pointer-events: none;
-    }
-
-    .cta-inner {
-      max-width: 700px;
-      margin: 0 auto;
-      text-align: center;
-      position: relative;
-      z-index: 1;
-    }
-
-    .cta-label {
-      display: block;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 12px;
-      letter-spacing: 0.3em;
-      color: var(--wood-light);
-      text-transform: uppercase;
-      margin-bottom: 20px;
-    }
-
-    .cta-title {
-      font-family: 'Noto Serif JP', serif;
-      font-size: clamp(22px, 3vw, 32px);
-      font-weight: 300;
-      color: var(--white);
-      line-height: 1.7;
-      margin-bottom: 16px;
-    }
-
-    .cta-sub {
-      font-size: 14px;
-      color: rgba(255,255,255,0.55);
-      line-height: 1.9;
-      margin-bottom: 40px;
-    }
-
-    .cta-divider { width: 40px; height: 1px; background: var(--wood-mid); margin: 0 auto 32px; }
-
-    .btn-primary {
-      display: inline-block;
-      background: var(--orange-warm);
-      color: var(--white);
-      padding: 15px 44px;
-      border-radius: 2px;
-      font-size: 14px;
-      font-weight: 400;
-      letter-spacing: 0.12em;
-      text-decoration: none;
-      transition: background 0.3s ease, transform 0.25s ease, box-shadow 0.3s ease;
-    }
-
-    .btn-primary:hover {
-      background: var(--wood-mid);
-      transform: translateY(-3px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.25);
-    }
-
-    .cta-note { margin-top: 16px; font-size: 12px; color: rgba(255,255,255,0.3); letter-spacing: 0.05em; }
-
-    /* ─── フッター ─── */
-    .footer { background: #1e1a14; padding: 40px; text-align: center; }
-
-    .footer-logo {
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 16px;
-      letter-spacing: 0.18em;
-      color: rgba(255,255,255,0.5);
-      margin-bottom: 8px;
-    }
-
-    .footer-copy { font-size: 11px; color: rgba(255,255,255,0.22); letter-spacing: 0.1em; }
-
-    /* ─── レスポンシブ ─── */
-    @media (max-width: 1024px) {
-      .drinks-grid { grid-template-columns: 1fr 1fr; }
-      .drinks-grid .drink-card:nth-child(3) {
-        grid-column: 1 / -1;
-        max-width: 480px;
-        margin: 0 auto;
-        width: 100%;
-      }
-      .features-grid { grid-template-columns: 1fr 1fr; }
-    }
-
-    @media (max-width: 768px) {
-      section { padding: 72px 20px; }
-      .nav { padding: 16px 20px; }
-      .nav-links { display: none; }
-
-      .hero { height: 85vh; min-height: 520px; }
-      .hero-deco-left, .hero-deco-right { display: none; }
-
-      .split-inner { grid-template-columns: 1fr; }
-      .split-photo { min-height: 300px; }
-      .split-text { padding: 48px 24px; }
-
-      .features-grid { grid-template-columns: 1fr; }
-      .line-grid { grid-template-columns: 1fr; gap: 32px; }
-
-      .drinks-grid { grid-template-columns: 1fr; }
-      .drinks-grid .drink-card:nth-child(3) { grid-column: auto; max-width: none; }
-
-      .message-box { padding: 28px 24px; }
-      .footer { padding: 32px 20px; }
-    }
+:root{
+  --wood-dark:#7a5c3e; --wood-mid:#a07850; --wood-light:#c4a06a;
+  --orange-warm:#e8a96a; --orange-pale:#f5e6d3; --orange-faint:#faf3eb;
+  --gray-dark:#4a4845; --gray-mid:#7c7874; --gray-light:#b8b4b0; --gray-faint:#f0edea;
+  --cream:#faf7f3; --white:#ffffff; --charcoal:#2e2b28;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--cream);color:var(--charcoal);font-family:"Noto Sans JP",sans-serif;font-weight:300;line-height:1.9;-webkit-font-smoothing:antialiased;}
+
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+.reveal-delay-1{transition-delay:.15s;}.reveal-delay-2{transition-delay:.3s;}.reveal-delay-3{transition-delay:.45s;}
+
+/* NAV */
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(250,247,243,.93);backdrop-filter:blur(8px);border-bottom:1px solid rgba(160,120,80,.12);}
+.nav-logo{font-family:"Cormorant Garamond",serif;font-size:17px;font-weight:400;letter-spacing:.15em;color:var(--charcoal);text-decoration:none;}
+.nav-logo span{font-family:"Noto Serif JP",serif;font-size:12px;display:block;letter-spacing:.2em;color:var(--wood-mid);margin-top:2px;}
+.nav-links{display:flex;gap:32px;list-style:none;}
+.nav-links a{font-family:"Cormorant Garamond",serif;font-size:12px;letter-spacing:.25em;color:var(--gray-mid);text-decoration:none;text-transform:uppercase;transition:color .2s;}
+.nav-links a:hover{color:var(--wood-mid);}
+
+/* SECTION COMMON */
+section{padding:100px 40px;}
+.section-inner{max-width:1080px;margin:0 auto;}
+.section-label{display:block;font-family:"Cormorant Garamond",serif;font-size:12px;letter-spacing:.3em;color:var(--wood-mid);text-transform:uppercase;margin-bottom:14px;}
+.section-title{font-family:"Noto Serif JP",serif;font-size:clamp(22px,3vw,36px);font-weight:400;line-height:1.6;color:var(--charcoal);margin-bottom:20px;}
+.section-divider{width:40px;height:1px;background:var(--wood-mid);margin:0 auto 52px;}
+.section-divider.left{margin:0 0 52px;}
+
+/* 画像未設定時プレースホルダー */
+.img-ph{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--orange-faint),var(--orange-pale));gap:12px;}
+.img-ph .ph-icon{font-size:36px;opacity:.4;}
+.img-ph .ph-label{font-family:"Cormorant Garamond",serif;font-size:11px;letter-spacing:.22em;color:var(--wood-mid);text-transform:uppercase;}
+
+/* ========== HERO ========== */
+/* ★写真① ヒーロー背景 --- .hero-bg の url() を変更してください
+   推奨サイズ: 1920x1080px 以上、横長 */
+.hero{position:relative;height:100vh;min-height:600px;display:flex;align-items:center;justify-content:center;overflow:hidden;background:var(--charcoal);}
+.hero-bg{position:absolute;inset:0;background-image:url("image/living.jpg");background-size:cover;background-position:center;opacity:.45;animation:slowZoom 20s ease-in-out infinite alternate;}
+@keyframes slowZoom{from{transform:scale(1)}to{transform:scale(1.06)}}
+.hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(30,22,12,.3) 0%,rgba(30,22,12,.65) 100%);}
+.hero-deco-l,.hero-deco-r{position:absolute;top:50%;transform:translateY(-50%);width:1px;height:120px;background:linear-gradient(to bottom,transparent,rgba(196,160,106,.5),transparent);}
+.hero-deco-l{left:40px;}.hero-deco-r{right:40px;}
+.hero-content{position:relative;z-index:10;text-align:center;padding:0 24px;}
+.hero-eyebrow{font-family:"Cormorant Garamond",serif;font-size:12px;letter-spacing:.35em;color:var(--wood-light);text-transform:uppercase;margin-bottom:24px;opacity:0;animation:fadeUp .9s ease .2s forwards;}
+.hero-title{font-family:"Noto Serif JP",serif;font-size:clamp(26px,4vw,50px);font-weight:300;line-height:1.55;color:var(--white);margin-bottom:20px;opacity:0;animation:fadeUp .9s ease .45s forwards;}
+.hero-title em{font-style:normal;color:var(--orange-warm);}
+.hero-bar-deco{width:40px;height:1px;background:var(--orange-warm);margin:20px auto 28px;opacity:0;animation:fadeUp .9s ease .55s forwards;}
+.hero-subtitle{font-size:clamp(13px,1.5vw,15px);font-weight:300;color:rgba(255,255,255,.72);letter-spacing:.08em;opacity:0;animation:fadeUp .9s ease .65s forwards;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+.hero-scroll{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);z-index:10;display:flex;flex-direction:column;align-items:center;gap:8px;opacity:0;animation:fadeUp .9s ease 1.2s forwards;}
+.hero-scroll span{font-family:"Cormorant Garamond",serif;font-size:10px;letter-spacing:.3em;color:rgba(255,255,255,.45);text-transform:uppercase;}
+.scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,rgba(196,160,106,.7),transparent);animation:scrollPulse 2s ease-in-out infinite;}
+@keyframes scrollPulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* ========== INTRO（写真+テキスト 2列） ========== */
+/* farewell.html の intro-grid 方式 */
+.intro{background:var(--white);}
+.intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
+/* ★写真② イントロ左側写真エリア（高さ480px）
+   img の src を変更してください
+   例: hisui-villa-living-overview.jpg */
+.intro-img-wrap{position:relative;}
+.intro-img-wrap img{width:100%;height:480px;object-fit:cover;display:block;}
+.intro-img-ph{height:480px;}
+.intro-img-accent{position:absolute;bottom:-20px;right:-20px;width:100px;height:100px;background:var(--orange-pale);z-index:-1;}
+.intro-lead{font-size:15px;line-height:2.1;color:var(--gray-dark);margin-bottom:28px;}
+.intro-quote{font-family:"Noto Serif JP",serif;font-size:clamp(14px,1.8vw,17px);font-weight:300;line-height:2.4;color:var(--charcoal);letter-spacing:.06em;padding:24px 0;border-top:.5px solid var(--gray-light);border-bottom:.5px solid var(--gray-light);margin-top:24px;}
+.intro-quote strong{color:var(--wood-mid);font-weight:400;}
+
+/* ========== FEATURES（こだわりカード）========== */
+/* farewell.html の feature-card + feature-img 方式 */
+.features{background:var(--cream);}
+.features-header{text-align:center;margin-bottom:64px;}
+.features-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:36px;}
+.feature-card{background:var(--white);border:1px solid var(--gray-light);box-shadow:0 2px 16px rgba(0,0,0,.05);transition:transform .35s ease,box-shadow .35s ease;overflow:hidden;}
+.feature-card:hover{transform:translateY(-6px);box-shadow:0 12px 32px rgba(0,0,0,.10);}
+/* ★写真③〜⑥ こだわりカード上部（高さ240px）
+   各 img の src を変更してください */
+.feature-img-wrap{width:100%;height:240px;overflow:hidden;background:var(--gray-faint);position:relative;}
+.feature-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease;}
+.feature-card:hover .feature-img-wrap img{transform:scale(1.04);}
+.feature-body{padding:28px 28px 32px;}
+.feature-num{font-family:"Cormorant Garamond",serif;font-size:32px;font-weight:300;color:var(--orange-pale);line-height:1;margin-bottom:8px;}
+.feature-title{font-family:"Noto Serif JP",serif;font-size:17px;font-weight:400;line-height:1.65;color:var(--charcoal);margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--gray-faint);}
+.feature-desc{font-size:13px;color:var(--gray-dark);line-height:2;}
+
+/* ========== LANDSCAPE（全幅横断写真帯）========== */
+/* farewell.html の landscape 方式 */
+/* ★写真⑦ 全幅横断写真（推奨: 1600x600px 横長）
+   img の src を変更してください */
+.landscape{position:relative;height:460px;overflow:hidden;background:var(--charcoal);}
+.landscape img{width:100%;height:100%;object-fit:cover;display:block;}
+.landscape-ph{height:460px;}
+.landscape-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(20,15,10,.25) 0%,rgba(20,15,10,.65) 100%);display:flex;align-items:center;justify-content:center;}
+.landscape-quote{text-align:center;}
+.landscape-quote blockquote{font-family:"Noto Serif JP",serif;font-size:clamp(18px,3vw,28px);font-weight:300;color:var(--white);line-height:1.8;letter-spacing:.08em;margin-bottom:16px;}
+.landscape-quote cite{font-family:"Cormorant Garamond",serif;font-size:12px;letter-spacing:.3em;color:rgba(255,255,255,.55);font-style:normal;}
+
+/* ========== MESSAGE（写真＋テキスト 2列）========== */
+/* farewell.html の stone-grid 方式 */
+.message-section{background:var(--charcoal);padding:0;}
+.message-grid{display:grid;grid-template-columns:1fr 1fr;min-height:520px;}
+/* ★写真⑧ メッセージカードの写真（右側）
+   img の src を変更してください
+   例: hisui-villa-table-message.jpg */
+.message-photo{overflow:hidden;position:relative;}
+.message-photo img{width:100%;height:100%;object-fit:cover;display:block;}
+.message-photo-ph{min-height:520px;}
+.message-text{padding:80px 60px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;}
+.message-text::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent 0px,rgba(196,160,106,.025) 1px,transparent 2px,transparent 14px);}
+.message-text .section-label{color:var(--wood-light);position:relative;}
+.message-text .section-title{color:var(--white);position:relative;}
+.message-sub{font-size:14px;color:rgba(255,255,255,.65);line-height:1.9;position:relative;}
+.message-box{margin-top:32px;border:.5px solid rgba(196,160,106,.5);padding:32px 36px;position:relative;}
+.message-box p{font-family:"Noto Serif JP",serif;font-size:14px;color:rgba(255,255,255,.82);line-height:2.6;letter-spacing:.06em;}
+
+/* LINE */
+.line-section{background:var(--orange-faint);}
+.line-grid{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center;}
+.line-badge{display:inline-block;background:var(--orange-warm);color:var(--white);font-family:"Cormorant Garamond",serif;font-size:11px;letter-spacing:.3em;padding:6px 20px;margin-bottom:24px;text-transform:uppercase;}
+.line-body{font-size:14px;color:var(--gray-dark);line-height:2;margin-top:14px;}
+.line-visual{background:var(--white);border:1px solid rgba(180,160,130,.18);padding:40px 32px;text-align:center;}
+.line-icon-wrap{width:56px;height:56px;background:#06C755;border-radius:14px;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;}
+.line-icon-wrap svg{width:30px;height:30px;fill:white;}
+.line-step{font-size:13px;color:var(--gray-dark);line-height:1.7;}
+.line-step strong{display:block;font-size:13px;color:var(--charcoal);font-weight:500;margin-bottom:2px;}
+.step-bar{width:1px;height:28px;background:var(--gray-light);margin:12px auto;}
+
+/* CHAPTER DIVIDER */
+.chapter-divider{background:var(--charcoal);padding:80px 40px;text-align:center;position:relative;overflow:hidden;}
+.chapter-divider::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(88deg,transparent 0px,rgba(196,160,106,.03) 1px,transparent 2px,transparent 18px);}
+.chapter-label{font-family:"Cormorant Garamond",serif;font-size:11px;letter-spacing:.4em;color:var(--wood-light);text-transform:uppercase;margin-bottom:16px;display:block;position:relative;}
+.chapter-title{font-family:"Noto Serif JP",serif;font-size:clamp(20px,3vw,32px);font-weight:300;color:var(--white);line-height:1.7;position:relative;}
+.chapter-title em{font-style:normal;color:var(--orange-warm);}
+.chapter-ornament{color:var(--wood-light);font-size:14px;letter-spacing:6px;margin:24px 0 0;display:block;position:relative;}
+
+/* BAR CARDS */
+.drinks-section{background:var(--cream);}
+.drinks-header{text-align:center;margin-bottom:64px;}
+.drinks-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;}
+.drink-card{background:var(--white);border:1px solid rgba(180,160,130,.18);box-shadow:0 2px 16px rgba(0,0,0,.05);transition:transform .35s ease,box-shadow .35s ease;overflow:hidden;}
+.drink-card:hover{transform:translateY(-6px);box-shadow:0 12px 32px rgba(0,0,0,.10);}
+/* ★写真⑨〜⑪ バードリンクカード（高さ220px）
+   各 img の src を変更してください */
+.drink-img-wrap{width:100%;height:220px;overflow:hidden;background:var(--gray-faint);}
+.drink-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s ease;}
+.drink-card:hover .drink-img-wrap img{transform:scale(1.04);}
+.drink-card-body{padding:28px 28px 32px;}
+.drink-card-label{font-family:"Cormorant Garamond",serif;font-size:11px;letter-spacing:.28em;color:var(--wood-light);text-transform:uppercase;margin-bottom:10px;display:block;}
+.drink-card-title{font-family:"Noto Serif JP",serif;font-size:19px;font-weight:400;color:var(--charcoal);margin-bottom:14px;line-height:1.5;}
+.drink-card-desc{font-size:14px;color:var(--gray-dark);line-height:1.9;}
+.drink-card-accent{display:block;width:28px;height:1px;background:var(--wood-light);margin:18px 0 0;}
+
+/* BANNER */
+.banner-section{background:var(--orange-faint);padding:80px 40px;}
+.banner-inner{max-width:860px;margin:0 auto;text-align:center;}
+.banner-badge{display:inline-block;background:var(--orange-warm);color:var(--white);font-family:"Cormorant Garamond",serif;font-size:12px;letter-spacing:.3em;padding:7px 22px;margin-bottom:28px;text-transform:uppercase;}
+.banner-ornament{color:var(--wood-light);font-size:16px;letter-spacing:6px;margin:24px 0;display:block;}
+.banner-text{font-size:15px;font-weight:300;color:var(--gray-dark);line-height:2;max-width:640px;margin:0 auto;}
+
+/* CTA */
+.cta-section{background:var(--charcoal);position:relative;overflow:hidden;}
+.cta-section::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(90deg,transparent 0px,rgba(196,160,106,.03) 1px,transparent 2px,transparent 14px);pointer-events:none;}
+.cta-inner{max-width:700px;margin:0 auto;text-align:center;position:relative;z-index:1;}
+.cta-label{display:block;font-family:"Cormorant Garamond",serif;font-size:12px;letter-spacing:.3em;color:var(--wood-light);text-transform:uppercase;margin-bottom:20px;}
+.cta-title{font-family:"Noto Serif JP",serif;font-size:clamp(22px,3vw,32px);font-weight:300;color:var(--white);line-height:1.7;margin-bottom:16px;}
+.cta-sub{font-size:14px;color:rgba(255,255,255,.55);line-height:1.9;margin-bottom:40px;}
+.cta-divider{width:40px;height:1px;background:var(--wood-mid);margin:0 auto 32px;}
+.btn-primary{display:inline-block;background:var(--orange-warm);color:var(--white);padding:15px 44px;border-radius:2px;font-size:14px;font-weight:400;letter-spacing:.12em;text-decoration:none;transition:background .3s ease,transform .25s ease,box-shadow .3s ease;}
+.btn-primary:hover{background:var(--wood-mid);transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.25);}
+.cta-note{margin-top:16px;font-size:12px;color:rgba(255,255,255,.3);letter-spacing:.05em;}
+
+/* FOOTER */
+.footer{background:#1e1a14;padding:40px;text-align:center;}
+.footer-logo{font-family:"Cormorant Garamond",serif;font-size:16px;letter-spacing:.18em;color:rgba(255,255,255,.5);margin-bottom:8px;}
+.footer-copy{font-size:11px;color:rgba(255,255,255,.22);letter-spacing:.1em;}
+
+/* RESPONSIVE */
+@media(max-width:1024px){
+  .features-grid{grid-template-columns:1fr 1fr;}
+  .drinks-grid{grid-template-columns:1fr 1fr;}
+  .drinks-grid .drink-card:nth-child(3){grid-column:1/-1;max-width:480px;margin:0 auto;width:100%;}
+}
+@media(max-width:768px){
+  section{padding:72px 20px;}
+  .nav{padding:16px 20px;}.nav-links{display:none;}
+  .hero-deco-l,.hero-deco-r{display:none;}
+  .intro-grid{grid-template-columns:1fr;gap:40px;}
+  .intro-img-wrap img,.intro-img-ph{height:300px;}
+  .intro-img-accent{display:none;}
+  .features-grid{grid-template-columns:1fr;}
+  .landscape{height:300px;}
+  .message-grid{grid-template-columns:1fr;}
+  .message-photo img,.message-photo-ph{min-height:280px;}
+  .message-text{padding:48px 24px;}
+  .line-grid{grid-template-columns:1fr;gap:32px;}
+  .drinks-grid{grid-template-columns:1fr;}
+  .drinks-grid .drink-card:nth-child(3){grid-column:auto;max-width:none;}
+  .footer{padding:32px 20px;}
+}
   </style>
 </head>
 <body>
 
-  <!-- ─── ナビゲーション ─── -->
-  <nav class="nav">
-    <a href="#" class="nav-logo">
-      Hisuino Villa
-      <span>ひすい野ヴィラ</span>
-    </a>
-    <ul class="nav-links">
-      <li><a href="#living">Living</a></li>
-      <li><a href="#bar">Bar</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
-  </nav>
+<!-- NAV -->
+<nav class="nav">
+  <a href="#" class="nav-logo">Hisuino Villa<span>ひすい野ヴィラ</span></a>
+  <ul class="nav-links">
+    <li><a href="#living">Living</a></li>
+    <li><a href="#bar">Bar</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
 
+<!-- ══════════════════════════════
+     PART 1 ： リビング
+══════════════════════════════ -->
 
-  <!-- ══════════════════════════════════ -->
-  <!--  PART 1 : リビング                 -->
-  <!-- ══════════════════════════════════ -->
-
-  <!-- ─── ヒーロー（リビング） ─── -->
-  <header class="hero" id="living">
-    <div class="hero-bg-img"></div>
-    <div class="hero-overlay"></div>
-    <div class="hero-deco-left"></div>
-    <div class="hero-deco-right"></div>
-
-    <div class="hero-content">
-      <p class="hero-eyebrow">Hisui-no Villa — Living</p>
-      <h1 class="hero-title">
-        家族が、<br><em>ひとつ</em>になれる場所。
-      </h1>
-      <div class="hero-bar-deco"></div>
-      <p class="hero-subtitle">
-        大切な方を囲み、語り合い、絆を深めるリビング
-      </p>
-    </div>
-
-    <div class="hero-scroll">
-      <div class="scroll-line"></div>
-      <span>Scroll</span>
-    </div>
-  </header>
-
-
-  <!-- ─── コンセプト ─── -->
-  <section class="concept-section">
-    <div class="concept-inner">
-      <span class="section-label reveal">Concept</span>
-      <h2 class="section-title reveal reveal-delay-1">
-        悲しみの中にこそ、<br>つながりの温もりがある
-      </h2>
-      <blockquote class="concept-quote reveal reveal-delay-2">
-        大切な方が旅立たれたとき、<br>
-        離れて暮らしていた家族が、ご親族が、<br>久しぶりに集います。<br>
-        そのかけがえない時間を、<strong>思い出</strong>と<strong>温もり</strong>で包めるように。<br>
-        ひすい野ヴィラのリビングは設計されました。
-      </blockquote>
-    </div>
-  </section>
-
-
-  <!-- ─── こだわり ─── -->
-  <section class="features-section">
-    <div class="section-inner">
-      <div class="section-header">
-        <span class="section-label reveal">Features</span>
-        <h2 class="section-title reveal reveal-delay-1">リビングへのこだわり</h2>
-        <div class="section-divider reveal reveal-delay-2"></div>
-      </div>
-
-      <div class="features-grid">
-
-        <article class="feature-card reveal reveal-delay-1">
-          <span class="feature-num"></span>
-          <h3 class="feature-title">やわらかな陽の光に、暖色系の上質なライティング</h3>
-          <p class="feature-body">明るすぎず、暗すぎない。<br>人の顔が美しく見える暖色の光が空間全体を包みます。<br>朝も夜も、安らぎの時間をお過ごしいただけます。</p>
-          <span class="feature-accent"></span>
-        </article>
-
-        <article class="feature-card reveal reveal-delay-2">
-          <span class="feature-num"></span>
-          <h3 class="feature-title">ソファベッド ＆ 大型ダイニングテーブル</h3>
-          <p class="feature-body">団らんを叶える空間。<br>ソファベッドはベッドルームが満室の場合の<br>宿泊スペースとしても活躍。<br>テーブルを囲み、飲み、食べ、<br>語り明かす最後の夜を。</p>
-          <span class="feature-accent"></span>
-        </article>
-
-        <article class="feature-card reveal reveal-delay-3">
-          <span class="feature-num"></span>
-          <h3 class="feature-title">故人様へのメッセージカード</h3>
-          <p class="feature-body">丸テーブルには、故人様へ想いを綴るメッセージカードをご用意。<br>ペンをとる静かな時間が、悲しみを昇華し、感謝を言葉にする機会となります。</p>
-          <span class="feature-accent"></span>
-        </article>
-
-        <article class="feature-card reveal reveal-delay-4">
-          <span class="feature-num"></span>
-          <h3 class="feature-title">75インチ 大型ビジョン</h3>
-          <p class="feature-body">スマートフォン・PC・タブレットを接続して、<br>思い出の写真や動画を皆で鑑賞。<br>テレビ・YouTubeはもちろん、思い出アルバム上映会の場にも変わります。</p>
-          <span class="feature-accent"></span>
-        </article>
-
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ─── メッセージカード ─── -->
-  <section class="message-section">
-    <div class="message-inner">
-      <span class="section-label reveal">Message Card</span>
-      <h2 class="section-title reveal reveal-delay-1">
-        想いを、言葉に。<br>故人様へ届ける<em>ありがとう</em>
-      </h2>
-      <p class="section-sub reveal reveal-delay-2">
-        
-      </p>
-      <div class="message-box reveal reveal-delay-3">
-        <p>
-          「ありがとう」「また会いたかった」<br>
-          普段は照れくさくて言えなかった言葉も、<br>
-          ここでは素直に綴ることができます。<br><br>
-          カラフルな色紙やカードをご用意しています。<br>
-          小さなお子様から、ご年配の方まで。
-        </p>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ─── LINE ─── -->
-  <section class="line-section">
-    <div class="section-inner">
-      <div class="line-grid">
-        <div class="reveal">
-          <span class="line-badge">Family Line</span>
-          <h2 class="section-title">
-            久しぶりに集まった<br>一族のご縁を<br>つなぎ続けるために
-          </h2>
-          <p class="line-body">
-            大切な方とのお別れを機に集まったご親族。<br>年に一度、あるいは数年ぶりの再会に、<br>これからも連絡を取り合えるよう、<br><strong>親戚グループLINEの簡単作成ガイド</strong>を<br>ご用意しています。<br><br>
-          </p>
-        </div>
-        <div class="line-visual reveal reveal-delay-2">
-          <div class="line-icon-wrap">
-            <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 3C9.373 3 4 7.701 4 13.5c0 3.394 1.897 6.406 4.855 8.373-.193.715-.741 2.59-.851 2.992-.137.499.183.493.385.359.158-.105 2.508-1.695 3.525-2.385A14.24 14.24 0 0016 23c6.627 0 12-4.701 12-10.5S22.627 3 16 3z"/>
-            </svg>
-          </div>
-          <div class="line-step">
-            <strong>STEP 1</strong>リビングに設置のガイドシートを確認
-            <div class="step-bar"></div>
-            <strong>STEP 2</strong>スマートフォンをガイドにならって操作
-            <div class="step-bar"></div>
-            <strong>STEP 3</strong>メンバーをグループに招待して完成
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-
-  <!-- ══════════════════════════════════ -->
-  <!--  CHAPTER DIVIDER                  -->
-  <!-- ══════════════════════════════════ -->
-
-  <div class="chapter-divider" id="bar">
-    <span class="chapter-label reveal">Bar Corner</span>
-    <h2 class="chapter-title reveal reveal-delay-1">
-      お飲み物は、ご自由に。<br>充実の<em>フリードリンク</em>
-    </h2>
-    <span class="chapter-ornament reveal reveal-delay-2"></span>
+<!-- HERO
+  ★ 写真① ヒーロー背景
+  推奨: 1920×1080px 以上 -->
+<header class="hero" id="living">
+  <div class="hero-bg"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-deco-l"></div>
+  <div class="hero-deco-r"></div>
+  <div class="hero-content">
+    <p class="hero-eyebrow">Hisui-no Villa — Living</p>
+    <h1 class="hero-title">家族が、<em>ひとつ</em>になれる場所。</h1>
+    <div class="hero-bar-deco"></div>
+    <p class="hero-subtitle">大切な方を囲み、語り合い、絆を深めるリビング</p>
   </div>
+  <div class="hero-scroll"><div class="scroll-line"></div><span>Scroll</span></div>
+</header>
 
 
-  <!-- ══════════════════════════════════ -->
-  <!--  PART 2 : バーコーナー             -->
-  <!-- ══════════════════════════════════ -->
+<!-- INTRO（写真＋テキスト 2列 ／ farewell.html の intro-grid 方式）
+  ★ 写真② イントロ左側
+  下の <img> の src を変更してください
+  例: hisui-villa-living-overview.jpg
+  推奨サイズ: 縦長 800×1000px 程度 -->
+<section class="intro">
+  <div class="section-inner">
+    <div class="intro-grid">
 
-  <!-- ─── ドリンク紹介カード ─── -->
-  <section class="drinks-section">
-    <div class="section-inner">
-      <div class="section-header reveal">
-        <span class="section-label">All Inclusive Drinks</span>
-        <h2 class="section-title">備え付けのバーコーナー</h2>
-        <p class="section-sub">コーヒー・お茶・ジュース・ビールまで。<br>追加料金なしで、いつでも好きなときに。</p>
-        <div class="section-divider"></div>
+      <div class="intro-img-wrap reveal">
+        <img
+          src="image/living.jpg"
+          alt="ひすい野ヴィラ リビング全景。暖色系照明と大型ダイニングテーブル"
+          loading="lazy"
+          onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph intro-img-ph',innerHTML:'<span class=ph-icon>🏠</span><span class=ph-label>Living Overview</span>'}))"
+        >
+        <div class="intro-img-accent"></div>
       </div>
 
-      <div class="drinks-grid">
+      <div class="reveal reveal-delay-1">
+        <span class="section-label">Concept</span>
+        <h2 class="section-title">悲しみの中にこそ、<br>つながりの温もりがある</h2>
+        <div class="section-divider left"></div>
+        <p class="intro-lead">大切な方が旅立たれたとき、離れて暮らしていた家族が久しぶりに集います。そのかけがえない時間を、思い出と温もりで包めるように。ひすい野ヴィラのリビングは設計されました。</p>
+        <blockquote class="intro-quote">
+          開式前の静かな朝も、儀式を終えたあとの夕べも、<br>
+          皆さまが思う存分に語り合い、<br>
+          <strong>笑い、涙し、想い出を分かち合えますように。</strong>
+        </blockquote>
+      </div>
 
-        <article class="drink-card reveal reveal-delay-1">
-          <div class="drink-card-img">
-            <img
-              src="images/drink_server.jpg"
-              alt="Daiohs TEATROドリンクサーバー。煎茶・カフェオレ・レモンティー・水の4種類"
-              onerror="this.parentElement.innerHTML='<div class=\'img-placeholder\'><span class=\'icon\'>🍵</span><span class=\'label\'>Drink Server</span></div>'"
-            >
-          </div>
-          <div class="drink-card-body">
-            <span class="drink-card-label"></span>
-            <h3 class="drink-card-title">ドリンクサーバー</h3>
-            <p class="drink-card-desc">煎茶・カフェオレ・レモンティー・水の4種類。</p>
-            <span class="drink-card-accent"></span>
-          </div>
-        </article>
+    </div>
+  </div>
+</section>
 
-        <article class="drink-card reveal reveal-delay-2">
-          <div class="drink-card-img">
-            <img
-              src="images/coffee.jpg"
-              alt="KALDIコーヒーを使用した本格コーヒーマシン。カフェインレス対応"
-              onerror="this.parentElement.innerHTML='<div class=\'img-placeholder\'><span class=\'icon\'>☕</span><span class=\'label\'>Coffee</span></div>'"
-            >
-          </div>
-          <div class="drink-card-body">
-            <span class="drink-card-label"></span>
-            <h3 class="drink-card-title">本格コーヒーマシン</h3>
-            <p class="drink-card-desc">KALDIのコーヒーを使用。カフェインレスもございます。<br>夜でも安心してお楽しみいただけます。</p>
-            <span class="drink-card-accent"></span>
-          </div>
-        </article>
 
-        <article class="drink-card reveal reveal-delay-3">
-          <div class="drink-card-img">
-            <img
-              src="images/fridge.jpg"
-              alt="オールインクルーシブの冷蔵庫。ビール・ノンアルコール・ジュース・お茶・水など"
-              onerror="this.parentElement.innerHTML='<div class=\'img-placeholder\'><span class=\'icon\'>🧊</span><span class=\'label\'>Cold Drinks</span></div>'"
-            >
-          </div>
-          <div class="drink-card-body">
-            <span class="drink-card-label"></span>
-            <h3 class="drink-card-title">冷蔵庫のドリンク全種</h3>
-            <p class="drink-card-desc">ビール・ノンアルコール・ジュース・お茶・水など。
-              <br>すべて無料でお召し上がりいただけます。</p>
-            <span class="drink-card-accent"></span>
-          </div>
-        </article>
+<!-- FEATURES（カード上部写真 ／ farewell.html の feature-card 方式）-->
+<section class="features">
+  <div class="section-inner">
+    <div class="features-header">
+      <span class="section-label reveal">Features</span>
+      <h2 class="section-title reveal reveal-delay-1">リビングへのこだわり</h2>
+      <div class="section-divider reveal reveal-delay-2"></div>
+    </div>
+    <div class="features-grid">
 
+      <!-- こだわり 01
+        ★ 写真③ ライティング・空間雰囲気写真
+        src を変更: 例 hisui-villa-living-lighting.jpg
+        推奨サイズ: 横長 800×480px -->
+      <article class="feature-card reveal reveal-delay-1">
+        <div class="feature-img-wrap">
+          <img
+            src="image/living.jpg"
+            alt="ひすい野ヴィラ リビングの暖色系ライティング"
+            loading="lazy"
+            onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph',style:'height:240px',innerHTML:'<span class=ph-icon>💡</span><span class=ph-label>Lighting</span>'}))"
+          >
+        </div>
+        <div class="feature-body">
+          <div class="feature-num">01</div>
+          <h3 class="feature-title">暖色系の上質なライティング</h3>
+          <p class="feature-desc">明るすぎず、暗すぎない。人の顔が美しく見える暖色の光が空間全体を包みます。朝も夜も、安らぎの時間をお過ごしいただけます。</p>
+        </div>
+      </article>
+
+      <!-- こだわり 02
+        ★ 写真④ ダイニングテーブル・ソファベッド写真
+        src を変更: 例 hisui-villa-living-dining.jpg -->
+      <article class="feature-card reveal reveal-delay-2">
+        <div class="feature-img-wrap">
+          <img
+            src="image/living.jpg"
+            alt="ひすい野ヴィラ 大型ダイニングテーブルとソファベッド"
+            loading="lazy"
+            onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph',style:'height:240px',innerHTML:'<span class=ph-icon>🛋️</span><span class=ph-label>Sofa &amp; Dining</span>'}))"
+          >
+        </div>
+        <div class="feature-body">
+          <div class="feature-num">02</div>
+          <h3 class="feature-title">ソファベッド ＆ 大型ダイニングテーブル</h3>
+          <p class="feature-desc">食事も団らんもひとつの空間で。ソファベッドはベッドルームが満室の場合の宿泊スペースとしても活躍。一族の旅館のようにご利用いただけます。</p>
+        </div>
+      </article>
+
+      <!-- こだわり 03
+        ★ 写真⑤ メッセージカード・丸テーブル写真
+        src を変更: 例 hisui-villa-table-message.jpg -->
+      <article class="feature-card reveal reveal-delay-1">
+        <div class="feature-img-wrap">
+          <img
+            src="image/gratitude-card.jpeg"
+            alt="ひすい野ヴィラ 故人様へのメッセージカードを書く丸テーブル"
+            loading="lazy"
+            onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph',style:'height:240px',innerHTML:'<span class=ph-icon>✉️</span><span class=ph-label>Message Card</span>'}))"
+          >
+        </div>
+        <div class="feature-body">
+          <div class="feature-num">03</div>
+          <h3 class="feature-title">故人様へのメッセージカード</h3>
+          <p class="feature-desc">丸テーブルには、故人様へ想いを綴るメッセージカードをご用意。ペンをとる静かな時間が、悲しみを昇華し、感謝を言葉にする機会となります。</p>
+        </div>
+      </article>
+
+      <!-- こだわり 04
+        ★ 写真⑥ 75インチビジョン写真
+        src を変更: 例 hisui-villa-living-tv.jpg -->
+      <article class="feature-card reveal reveal-delay-2">
+        <div class="feature-img-wrap">
+          <img
+            src="image/living.jpg"
+            alt="ひすい野ヴィラ 75インチ大型ビジョン"
+            loading="lazy"
+            onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph',style:'height:240px',innerHTML:'<span class=ph-icon>📺</span><span class=ph-label>75inch Vision</span>'}))"
+          >
+        </div>
+        <div class="feature-body">
+          <div class="feature-num">04</div>
+          <h3 class="feature-title">75インチ 大型ビジョン</h3>
+          <p class="feature-desc">スマートフォン・PC・タブレットを接続して、思い出の写真や動画を皆で鑑賞。テレビ・動画サービスはもちろん、思い出アルバム上映会の場にも変わります。</p>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- LANDSCAPE（全幅横断写真帯 ／ farewell.html の landscape 方式）
+  ★ 写真⑦ 全幅横断写真
+  下の <img> の src を変更してください
+  推奨サイズ: 1600×600px 以上 横長 -->
+<div class="landscape">
+  <img
+    src="image/living.jpg"
+    alt="ひすい野ヴィラ リビングから望む景色"
+    loading="lazy"
+    onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph landscape-ph',innerHTML:'<span class=ph-icon>🌿</span><span class=ph-label>Landscape View</span>'}))"
+  >
+  <div class="landscape-overlay">
+    <div class="landscape-quote reveal">
+      <blockquote>旅館のような、一族の居間。</blockquote>
+      <cite>HISUI-NO VILLA — Living</cite>
+    </div>
+  </div>
+</div>
+
+
+<!-- MESSAGE（写真＋テキスト 2列 ／ farewell.html の stone-grid 方式）
+  ★ 写真⑧ メッセージカード・丸テーブルの写真（右側に表示）-->
+<section class="message-section">
+  <div class="message-grid">
+
+    <div class="message-text reveal">
+      <span class="section-label">Message Card</span>
+      <h2 class="section-title">想いを、言葉に。<br>故人様へ届ける手紙</h2>
+      <p class="message-sub">丸テーブルに座り、ゆっくりとペンを走らせる。<br>その静かな時間が、心の整理と感謝の言葉を生みます。</p>
+      <div class="message-box">
+        <p>「ありがとう」「また会いたかった」<br>普段は照れくさくて言えなかった言葉も、<br>ここでは素直に綴ることができます。<br><br>カラフルな色紙やカードをご用意しています。<br>小さなお子様から、ご年配の方まで。</p>
       </div>
     </div>
-  </section>
 
-
-  <!-- ─── All Inclusive バナー ─── -->
-  <section class="banner-section">
-    <div class="banner-inner reveal">
-      <span class="banner-badge">ＳＥＲＶＩＣＥ</span>
-      <span class="banner-ornament"></span>
-      <p class="banner-text">
-        大切なご家族とのお時間を快適にお過ごしいただけますよう、<br>
-        細かな部分は私たちがすべて整えます。
-      </p>
+    <div class="message-photo">
+      <img
+        src="image/gratitude-card.jpeg"
+        alt="ひすい野ヴィラ 丸テーブルでメッセージカードを書く様子。カラフルな便箋や絵葉書が並ぶ"
+        loading="lazy"
+        onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph message-photo-ph',innerHTML:'<span class=ph-icon>✉️</span><span class=ph-label>Message Table</span>'}))"
+      >
     </div>
-  </section>
+
+  </div>
+</section>
 
 
-  <!-- ─── フッター ─── -->
-  <footer class="footer">
-    <p class="footer-logo">Hisuino Villa — ひすい野ヴィラ</p>
-    <p class="footer-copy">&copy; 有限会社 高松葬祭</p>
-  </footer>
+<!-- LINE -->
+<section class="line-section">
+  <div class="section-inner">
+    <div class="line-grid">
+      <div class="reveal">
+        <span class="line-badge">Family Line</span>
+        <h2 class="section-title">久しぶりに集まった<br>一族のご縁を<br>つなぎ続けるために</h2>
+        <p class="line-body">大切な方の旅立ちを機に集まったご家族。年に一度、あるいは数年ぶりの再会に、これからも連絡を取り合えるよう、<strong>親戚グループLINEの簡単作成ガイド</strong>をご用意しています。<br><br>悲しみの中に生まれた絆を、未来へつないでいきましょう。</p>
+      </div>
+      <div class="line-visual reveal reveal-delay-2">
+        <div class="line-icon-wrap">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 3C9.373 3 4 7.701 4 13.5c0 3.394 1.897 6.406 4.855 8.373-.193.715-.741 2.59-.851 2.992-.137.499.183.493.385.359.158-.105 2.508-1.695 3.525-2.385A14.24 14.24 0 0016 23c6.627 0 12-4.701 12-10.5S22.627 3 16 3z"/></svg>
+        </div>
+        <div class="line-step">
+          <strong>STEP 1</strong>リビングに設置のガイドシートを確認<div class="step-bar"></div>
+          <strong>STEP 2</strong>スマートフォンでQRコードを読み取り<div class="step-bar"></div>
+          <strong>STEP 3</strong>家族をグループに招待して完成
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 
-  <!-- ─── スクロールアニメーション ─── -->
-  <script>
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.classList.add('visible');
-          observer.unobserve(e.target);
-        }
-      });
-    }, { threshold: 0.12 });
+<!-- ══════════════════════════════
+     章区切り（リビング → バー）
+══════════════════════════════ -->
+<div class="chapter-divider" id="bar">
+  <span class="chapter-label reveal">Next — Bar Corner</span>
+  <h2 class="chapter-title reveal reveal-delay-1">ご滞在中のドリンクは<br>すべて<em>ご自由に</em>どうぞ</h2>
+  <span class="chapter-ornament reveal reveal-delay-2">◇ ◇ ◇</span>
+</div>
 
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-  </script>
 
+<!-- ══════════════════════════════
+     PART 2 ： バーコーナー
+══════════════════════════════ -->
+
+<!-- BAR DRINK CARDS -->
+<section class="drinks-section">
+  <div class="section-inner">
+    <div class="drinks-header">
+      <span class="section-label reveal">All Inclusive Drinks</span>
+      <h2 class="section-title reveal reveal-delay-1">備え付けのバーコーナー</h2>
+      <p style="font-size:14px;color:var(--gray-mid);margin-top:8px;" class="reveal reveal-delay-2">コーヒー・お茶・ジュース・ビールまで。追加料金なしで、いつでも好きなときに。</p>
+      <div class="section-divider reveal"></div>
+    </div>
+    <div class="drinks-grid">
+
+      <!-- バーカード 01
+        ★ 写真⑨ ドリンクサーバー
+        src を変更: 例 hisui-bar-drink-server.jpg
+        推奨サイズ: 横長 600×440px -->
+      <article class="drink-card reveal reveal-delay-1">
+        <div class="drink-img-wrap">
+          <img
+            src="image/complimentary-drink-server.jpg"
+            alt="Daiohs TEATROドリンクサーバー。煎茶・カフェオレ・レモンティー・水の4種類"
+            loading="lazy"
+            onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph',style:'height:220px',innerHTML:'<span class=ph-icon>🍵</span><span class=ph-label>Drink Server</span>'}))"
+          >
+        </div>
+        <div class="drink-card-body">
+          <span class="drink-card-label">Hot Drinks</span>
+          <h3 class="drink-card-title">ドリンクサーバー</h3>
+          <p class="drink-card-desc">煎茶・カフェオレ・レモンティー・水の4種類からお選びいただけます。</p>
+          <span class="drink-card-accent"></span>
+        </div>
+      </article>
+
+      <!-- バーカード 02
+        ★ 写真⑩ コーヒーマシン
+        src を変更: 例 hisui-bar-coffee.jpg -->
+      <article class="drink-card reveal reveal-delay-2">
+        <div class="drink-img-wrap">
+          <img
+            src="image/high-end-coffe-maker.jpeg"
+            alt="KALDIコーヒーを使用した本格コーヒーマシン。カフェインレス対応"
+            loading="lazy"
+            onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph',style:'height:220px',innerHTML:'<span class=ph-icon>☕</span><span class=ph-label>Coffee Machine</span>'}))"
+          >
+        </div>
+        <div class="drink-card-body">
+          <span class="drink-card-label">Specialty Coffee</span>
+          <h3 class="drink-card-title">本格コーヒーマシン</h3>
+          <p class="drink-card-desc">KALDIのコーヒーを使用。カフェインレスも対応しており、夜でも安心してお楽しみいただけます。</p>
+          <span class="drink-card-accent"></span>
+        </div>
+      </article>
+
+      <!-- バーカード 03
+        ★ 写真⑪ 冷蔵庫のドリンク
+        src を変更: 例 hisui-bar-fridge.jpg -->
+      <article class="drink-card reveal reveal-delay-3">
+        <div class="drink-img-wrap">
+          <img
+            src="image/complimentary-drink-bar.png"
+            alt="オールインクルーシブの冷蔵庫。ビール・ノンアルコール・ジュース・お茶・水など"
+            loading="lazy"
+            onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph',style:'height:220px',innerHTML:'<span class=ph-icon>🧊</span><span class=ph-label>Cold Drinks</span>'}))"
+          >
+        </div>
+        <div class="drink-card-body">
+          <span class="drink-card-label">Cold Drinks</span>
+          <h3 class="drink-card-title">冷蔵庫のドリンク全種</h3>
+          <p class="drink-card-desc">ビール・ノンアルコール・ジュース・お茶・水など。すべて無料でお召し上がりいただけます。</p>
+          <span class="drink-card-accent"></span>
+        </div>
+      </article>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- BANNER -->
+<section class="banner-section">
+  <div class="banner-inner reveal">
+    <span class="banner-badge">All Inclusive</span>
+    <span class="banner-ornament">◇ ◇ ◇</span>
+    <p class="banner-text">備え付けのバーコーナーのドリンクはすべて追加料金なし。<br>大切なご家族とのお時間を快適にお過ごしいただけますよう、<br>細かな部分は私たちがすべて整えます。</p>
+  </div>
+</section>
+
+
+<!-- CTA -->
+<section class="cta-section" id="contact">
+  <div class="section-inner">
+    <div class="cta-inner reveal">
+      <span class="cta-label">Contact</span>
+      <h2 class="cta-title">ひすい野ヴィラについて<br>詳しくはLINEで</h2>
+      <div class="cta-divider"></div>
+      <p class="cta-sub">施設のご見学・ご相談はLINEで承っております。<br>お気軽にメッセージをお送りください。</p>
+      <!-- ▼ 公式LINEのURLに変更してください 例: https://lin.ee/XXXXXXX -->
+      <a href="https://lin.ee/XXXXXXX" class="btn-primary" target="_blank" rel="noopener noreferrer">LINEでお問い合わせ</a>
+      <p class="cta-note">※ LINEアプリが開きます</p>
+    </div>
+  </div>
+</section>
+
+
+<!-- FOOTER -->
+<footer class="footer">
+  <p class="footer-logo">Hisuino Villa — ひすい野ヴィラ</p>
+  <p class="footer-copy">&copy; 有限会社 高松葬祭</p>
+</footer>
+
+<script>
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
 </body>
 </html>
