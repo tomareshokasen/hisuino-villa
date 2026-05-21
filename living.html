@@ -52,9 +52,9 @@ section{padding:100px 40px;}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(30,22,12,.3) 0%,rgba(30,22,12,.65) 100%);}
 .hero-deco-l,.hero-deco-r{position:absolute;top:50%;transform:translateY(-50%);width:1px;height:120px;background:linear-gradient(to bottom,transparent,rgba(196,160,106,.5),transparent);}
 .hero-deco-l{left:40px;}.hero-deco-r{right:40px;}
-.hero-content{position:relative;z-index:10;text-align:center;padding:0 24px;}
+.hero-content{position:relative;z-index:10;text-align:left;padding:0 24px 0 8%;}
 .hero-eyebrow{font-family:"Cormorant Garamond",serif;font-size:12px;letter-spacing:.35em;color:var(--wood-light);text-transform:uppercase;margin-bottom:24px;opacity:0;animation:fadeUp .9s ease .2s forwards;}
-.hero-title{font-family:"Noto Serif JP",serif;font-size:clamp(26px,4vw,50px);font-weight:300;line-height:1.55;color:var(--white);margin-bottom:20px;opacity:0;animation:fadeUp .9s ease .45s forwards;}
+.hero-title{font-family:"Noto Serif JP",serif;font-size:clamp(26px,4vw,36px);font-weight:300;line-height:1.55;color:var(--white);margin-bottom:20px;opacity:0;animation:fadeUp .9s ease .45s forwards;}
 .hero-title em{font-style:normal;color:var(--orange-warm);}
 .hero-bar-deco{width:40px;height:1px;background:var(--orange-warm);margin:20px auto 28px;opacity:0;animation:fadeUp .9s ease .55s forwards;}
 .hero-subtitle{font-size:clamp(13px,1.5vw,15px);font-weight:300;color:rgba(255,255,255,.72);letter-spacing:.08em;opacity:0;animation:fadeUp .9s ease .65s forwards;}
@@ -63,6 +63,9 @@ section{padding:100px 40px;}
 .hero-scroll span{font-family:"Cormorant Garamond",serif;font-size:10px;letter-spacing:.3em;color:rgba(255,255,255,.45);text-transform:uppercase;}
 .scroll-line{width:1px;height:40px;background:linear-gradient(to bottom,rgba(196,160,106,.7),transparent);animation:scrollPulse 2s ease-in-out infinite;}
 @keyframes scrollPulse{0%,100%{opacity:.4}50%{opacity:1}}
+.hero-tabs{display:flex;gap:32px;margin-top:28px;}
+.hero-tab{font-size:13px;letter-spacing:.2em;color:var(--white);opacity:.6;text-decoration:none;padding-bottom:4px;border-bottom:1px solid transparent;}
+.hero-tab.active{opacity:1;color:var(--orange-warm);border-bottom:1px solid var(--orange-warm);}
 
 /* ========== INTRO（写真+テキスト 2列） ========== */
 /* farewell.html の intro-grid 方式 */
@@ -218,9 +221,13 @@ section{padding:100px 40px;}
   <div class="hero-deco-r"></div>
   <div class="hero-content">
     <p class="hero-eyebrow">Hisui-no Villa — Living</p>
-    <h1 class="hero-title">家族が、<em>ひとつ</em>になれる場所。</h1>
+    <h1 class="hero-title">家族が、<br><em>ひとつになれる場所。</em></h1>
     <div class="hero-bar-deco"></div>
-    <p class="hero-subtitle">大切な方を囲み、語り合い、絆を深めるリビング</p>
+    <p class="hero-subtitle">大切な方を囲み、語り合い、<br>絆を深めるリビング</p>
+    <nav class="hero-tabs">
+      <a href="#living" class="hero-tab active">リビング</a>
+      <a href="#bar" class="hero-tab">バーコーナー</a>
+    </nav>
   </div>
   <div class="hero-scroll"><div class="scroll-line"></div><span>Scroll</span></div>
 </header>
