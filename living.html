@@ -171,7 +171,12 @@ section{padding:100px 40px;}
 .footer{background:#1e1a14;padding:40px;text-align:center;}
 .footer-logo{font-family:"Cormorant Garamond",serif;font-size:16px;letter-spacing:.18em;color:rgba(255,255,255,.5);margin-bottom:8px;}
 .footer-copy{font-size:11px;color:rgba(255,255,255,.22);letter-spacing:.1em;}
-
+@media(max-width:768px){
+.footer{ padding:32px 20px; }
+.footer-logo{ font-size:14px; }
+.footer-copy{ font-size:10px; }
+}
+  
 /* RESPONSIVE */
 @media(max-width:1024px){
   .features-grid{grid-template-columns:1fr 1fr;}
