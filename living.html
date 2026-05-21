@@ -128,10 +128,10 @@ section{padding:100px 40px;}
 .step-bar{width:1px;height:28px;background:var(--gray-light);margin:12px auto;}
 
 /* CHAPTER DIVIDER */
-.chapter-divider{background:url('image/complimentary-drink-bar.png') center/cover no-repeat;padding:80px 40px 80px 8%;text-align:left;position:relative;overflow:hidden;}
-.chapter-divider::before{content:"";position:absolute;inset:0;background-image:repeating-linear-gradient(88deg,transparent 0px,rgba(196,160,106,.03) 1px,transparent 2px,transparent 18px);}
+.chapter-divider{background:url('image/complimentary-drink-bar.png') center/cover no-repeat;padding:80px 40px 140px 8%;text-align:left;position:relative;overflow:hidden;}
+.chapter-divider::before{content:'';position:absolute;inset:0;background:rgba(40,35,30,0.55);backdrop-filter:grayscale(60%);}
 .chapter-label{font-family:"Cormorant Garamond",serif;font-size:11px;letter-spacing:.4em;color:var(--wood-light);text-transform:uppercase;margin-bottom:16px;display:block;position:relative;}
-.chapter-title{font-family:"Noto Serif JP",serif;font-size:clamp(20px,3vw,32px);font-weight:300;color:var(--white);line-height:1.7;position:relative;}
+.chapter-title{font-family:"Noto Serif JP",serif;font-size:clamp(16px,2vw,22px);font-weight:300;color:var(--white);line-height:1.7;position:relative;}
 .chapter-title em{font-style:normal;color:var(--orange-warm);}
 .chapter-ornament{color:var(--wood-light);font-size:14px;letter-spacing:6px;margin:24px 0 0;display:block;position:relative;}
 .chapter-sub{font-family:'Cormorant Garamond',serif;font-size:12px;letter-spacing:.3em;color:var(--orange-warm);margin-top:12px;position:relative;}
@@ -203,15 +203,6 @@ section{padding:100px 40px;}
 </head>
 <body>
 
-<!-- NAV -->
-<nav class="nav">
-  <a href="#" class="nav-logo">Hisuino Villa<span>ひすい野ヴィラ</span></a>
-  <ul class="nav-links">
-    <li><a href="#living">Living</a></li>
-    <li><a href="#bar">Bar</a></li>
-    <li><a href="#contact">Contact</a></li>
-  </ul>
-</nav>
 
 <!-- ══════════════════════════════
      PART 1 ： リビング
@@ -509,21 +500,6 @@ section{padding:100px 40px;}
   </div>
 </section>
 
-
-<!-- CTA -->
-<section class="cta-section" id="contact">
-  <div class="section-inner">
-    <div class="cta-inner reveal">
-      <span class="cta-label">Contact</span>
-      <h2 class="cta-title">ひすい野ヴィラについて<br>詳しくはLINEで</h2>
-      <div class="cta-divider"></div>
-      <p class="cta-sub">施設のご見学・ご相談はLINEで承っております。<br>お気軽にメッセージをお送りください。</p>
-      <!-- ▼ 公式LINEのURLに変更してください 例: https://lin.ee/XXXXXXX -->
-      <a href="https://lin.ee/XXXXXXX" class="btn-primary" target="_blank" rel="noopener noreferrer">LINEでお問い合わせ</a>
-      <p class="cta-note">※ LINEアプリが開きます</p>
-    </div>
-  </div>
-</section>
 
 
 <!-- FOOTER -->
