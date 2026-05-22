@@ -150,7 +150,7 @@
   .price-table tr:hover td{ background:var(--orange-faint); }
   .price-table .total td{ background:#f5ede0; font-family:'Noto Serif JP',serif; font-size:15px; color:var(--wood-dark); }
   .price-table .amount{ text-align:right; }
-  .member-price{ background:var(--orange-faint); border-left:3px solid var(--orange-warm); padding:16px 20px; font-size:14px; color:var(--wood-dark); margin-bottom:16px; display:flex; align-items:center; gap:10px; }
+  .member-price{ background:var(--orange-faint); border-left:3px solid var(--orange-warm); padding:16px 20px; font-size:14px; color:var(--wood-dark); margin-bottom:16px; display:flex; justify-content:space-between; align-items:flex-start; }
   .member-price strong{ font-size:16px; font-family:'Noto Serif JP',serif; }
   .price-note{ font-size:12px; color:var(--gray-mid); line-height:2.1; background:var(--gray-faint); padding:16px 20px; border-left:2px solid var(--gray-light); }
 
@@ -469,26 +469,23 @@
 <section class="price" id="price">
   <div class="section-inner">
     <span class="section-label">Price</span>
-    <h2 class="section-title">会館使用料</h2>
+    <h2 class="section-title">ヴィラ使用料</h2>
     <div class="divider"></div>
     <table class="price-table">
       <thead><tr><th>項目</th><th>単位</th><th style="text-align:right">価格（税込）</th></tr></thead>
       <tbody>
         <tr><td>ご遺体お預かり料</td><td>1日</td><td class="amount">22,000円</td></tr>
-        <tr><td>会館使用料金 2日間</td><td>1式</td><td class="amount">275,000円</td></tr>
+        <tr><td>ヴィラ使用料金 2日間</td><td>1式</td><td class="amount">275,000円</td></tr>
         <tr class="total"><td colspan="2"><strong>計</strong></td><td class="amount"><strong>297,000円</strong></td></tr>
       </tbody>
     </table>
     <div class="member-price">
-      会員様 <strong>237,600円</strong><br>
-      (20%OFF・59,400円割引）
-    </div>
-    <p class="price-note">
-      ※ひすい野会員様はホール使用料金・祭壇料金20%OFF（当日入会は適用されません）<br>
-      ※葬儀施行にかかる別途費用は担当者よりご説明いたします<br>
-      ※表示価格はすべて税込です
-    </p>
+  <span>会員様</span>
+  <div style="text-align:right;">
+    <strong>237,600円</strong><br>
+    <span style="font-size:12px;">20%OFF・59,400円割引</span>
   </div>
+ </div>
 </section>
 
 
