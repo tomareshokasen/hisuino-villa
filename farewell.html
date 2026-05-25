@@ -535,8 +535,8 @@ section {
 @media(max-width:700px){ .mobile-cta{ display:flex; flex-direction:row; } }
 
 　/* HEADER */
-header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justify-content:space-between; align-items:center; padding:16px 40px; background:rgba(250,247,243,0.94); backdrop-filter:blur(10px); border-bottom:1px solid rgba(196,160,106,0.25); }
-.header-logo{ font-family:'Noto Serif JP',serif; font-size:18px; letter-spacing:0.14em; color:var(--wood-dark); }
+ header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justify-content:space-between; align-items:center; flex-wrap:nowrap; padding:16px 40px; background:rgba(250,247,243,0.94); backdrop-filter:blur(10px); border-bottom:1px solid rgba(196,160,106,0.25); }
+.header-logo{ font-family:'Noto Serif JP',serif; font-size:18px; letter-spacing:0.14em; color:var(--wood-dark); text-decoration:none; }
 .header-logo span{ display:block; font-size:12px; letter-spacing:0.25em; color:var(--gray-mid); font-family:'Cormorant Garamond',serif; }
 .header-buttons{ display:flex; align-items:center; gap:10px; }
 .btn-header-outline{ display:inline-block; padding:10px 20px; font-size:13px; color:var(--wood-dark); background:transparent; border:1.5px solid var(--wood-dark); border-radius:4px; text-decoration:none; white-space:nowrap; transition:background 0.25s; }
@@ -556,7 +556,7 @@ header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justi
 </head>
 <body>
 <header>
-  <div class="header-logo">
+  <a href="index.html" class="header-logo">
     ひすい野ヴィラ
     <span>Hisuino Villa</span>
   </div>
