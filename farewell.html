@@ -24,6 +24,12 @@
   --charcoal:     #2e2b28;
 }
 
+  @keyframes fadeUp {
+  from { opacity:0; transform:translateY(20px); }
+  to   { opacity:1; transform:none; }
+}
+  
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
@@ -120,7 +126,7 @@ section {
 .hero-content {
   position: relative;
   z-index: 2;
-  padding: 0 60px 140px;
+  padding: 0 60px 60px;
   max-width: 820px;
 }
 .hero-label {
@@ -589,15 +595,15 @@ section {
   <div class="hero-bg" role="img" aria-label="ひすい野ヴィラの温かな祭壇空間"></div>
   <div class="hero-overlay"></div>
   <div class="hero-content">
-    <span class="hero-label reveal visible">Farewell Space — Hisuino Villa</span>
-    <h1 class="hero-title reveal visible">
-      式場全体が、<br>
-      <em>感謝を伝える場所。</em>
-    </h1>
-    <p class="hero-desc reveal visible">
-      あたたかな思い出とともに、<br>
-      尊い人生への敬意を込めたご供養を。
-    </p>
+  <span class="hero-label" style="animation:fadeUp 0.9s ease 0.2s both;">Farewell Space — Hisuino Villa</span>
+  <h1 class="hero-title" style="animation:fadeUp 0.9s ease 0.45s both;">
+    式場全体が、<br>
+    <em>感謝を伝える場所。</em>
+  </h1>
+  <p class="hero-desc" style="animation:fadeUp 0.9s ease 0.65s both;">
+    あたたかな思い出とともに、<br>
+    尊い人生への敬意を込めたご供養を。
+  </p>
   </div>
 </section>
 
