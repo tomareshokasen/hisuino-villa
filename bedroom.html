@@ -486,6 +486,24 @@ footer p {
    .mobile-cta{ display:flex; }
    @media(max-width:700px){ .mobile-cta{ display:flex; flex-direction:row; } }
    
+   /* HEADER */
+   header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justify-content:space-between; align-items:center; padding:16px 40px; background:rgba(250,247,243,0.94); backdrop-filter:blur(10px); border-bottom:1px solid rgba(196,160,106,0.25); }
+   .header-logo{ font-family:'Noto Serif JP',serif; font-size:18px; letter-spacing:0.14em; color:var(--wood-dark); }
+   .header-logo span{ display:block; font-size:12px; letter-spacing:0.25em; color:var(--gray-mid); font-family:'Cormorant Garamond',serif; }
+   .header-buttons{ display:flex; align-items:center; gap:10px; }
+   .btn-header-outline{ display:inline-block; padding:10px 20px; font-size:13px; color:var(--wood-dark); background:transparent; border:1.5px solid var(--wood-dark); border-radius:4px; text-decoration:none; white-space:nowrap; transition:background 0.25s; }
+   .btn-header-outline:hover{ background:var(--orange-faint); }
+   .btn-header-primary{ display:inline-block; padding:10px 20px; font-size:13px; color:var(--white); background:var(--orange-warm); border:1.5px solid transparent; border-radius:4px; text-decoration:none; white-space:nowrap; transition:background 0.25s; }
+   .btn-header-primary:hover{ background:var(--wood-mid); }
+   .btn-full{ display:inline; }
+   .btn-short{ display:none; }
+   @media(max-width:480px){
+     .btn-full{ display:none; }
+     .btn-short{ display:inline; }
+     .btn-header-outline,.btn-header-primary{ padding:8px 14px; font-size:11px; }
+   }
+
+   
 </style>
 </head>
 <body>
