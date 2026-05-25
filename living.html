@@ -47,7 +47,7 @@ section{padding:100px 40px;}
 /* ★写真① ヒーロー背景 --- 
    推奨サイズ: 1920x1080px 以上、横長 */
 .hero{position:relative;height:100vh;min-height:600px;display:flex;align-items:flex-end;justify-content:flex-start;overflow:hidden;background:var(--charcoal);}
-.hero-bg{position:absolute;inset:0;background-image:url("image/living.jpg");background-size:cover;background-position:center;opacity:.45;animation:slowZoom 20s ease-in-out infinite alternate;}
+.hero-bg{position:absolute;inset:0;background-image:url("https://hisuino.co.jp/wp-content/uploads/2026/05/living-scaled.jpg");background-size:cover;background-position:center;opacity:.45;animation:slowZoom 20s ease-in-out infinite alternate;}
 @keyframes slowZoom{from{transform:scale(1)}to{transform:scale(1.06)}}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(30,22,12,.3) 0%,rgba(30,22,12,.65) 100%);}
 .hero-deco-l,.hero-deco-r{position:absolute;top:50%;transform:translateY(-50%);width:1px;height:120px;background:linear-gradient(to bottom,transparent,rgba(196,160,106,.5),transparent);}
@@ -73,7 +73,7 @@ section{padding:100px 40px;}
 .intro-grid{display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:center;}
 /* ★写真② イントロ左側写真エリア（高さ480px）
    img の src を変更してください
-   例: hisui-villa-living-overview.jpg */
+   例: hisui-villa-living-overview-scaled.jpg */
 .intro-img-wrap{position:relative;}
 .intro-img-wrap img{width:100%;height:480px;object-fit:cover;display:block;}
 .intro-img-ph{height:480px;}
@@ -106,7 +106,7 @@ section{padding:100px 40px;}
 .message-grid{display:grid;grid-template-columns:1fr 1fr;min-height:520px;}
 /* ★写真⑧ メッセージカードの写真（右側）
    img の src を変更してください
-   例: hisui-villa-table-message.jpg */
+   例: hisui-villa-table-message-scaled.jpg */
 .message-photo{overflow:hidden;position:relative;}
 .message-photo img{width:100%;height:100%;object-fit:cover;display:block;}
 .message-photo-ph{min-height:520px;}
@@ -131,7 +131,7 @@ section{padding:100px 40px;}
 .step-bar{width:1px;height:28px;background:var(--gray-light);margin:12px auto;}
 
 /* CHAPTER DIVIDER */
-.chapter-divider{background:url('image/complimentary-drink-bar.png') center/cover no-repeat;padding:80px 40px 140px 8%;text-align:left;position:relative;overflow:hidden;}
+.chapter-divider{background:url('https://hisuino.co.jp/wp-content/uploads/2026/05/complimentary-drink-bar.png') center/cover no-repeat;padding:80px 40px 140px 8%;text-align:left;position:relative;overflow:hidden;}
 .chapter-divider::before{content:'';position:absolute;inset:0;background:rgba(40,35,30,0.55);backdrop-filter:grayscale(60%);}
 .chapter-label{font-family:"Cormorant Garamond",serif;font-size:11px;letter-spacing:.4em;color:var(--wood-light);text-transform:uppercase;margin-bottom:16px;display:block;position:relative;}
 .chapter-title{font-family:"Noto Serif JP",serif;font-size:clamp(16px,2vw,22px);font-weight:300;color:var(--white);line-height:1.7;position:relative;}
@@ -307,7 +307,7 @@ header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justi
 
       <div class="intro-img-wrap reveal">
         <img
-          src="image/family-time-in-the-living-room.jpg"
+          src="https://hisuino.co.jp/wp-content/uploads/2026/05/family-time-in-the-living-room-scaled.jpg"
           alt="ひすい野ヴィラ リビング全景。暖色系照明と大型ダイニングテーブル"
           loading="lazy"
 
@@ -344,11 +344,11 @@ header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justi
       
       <!-- こだわり 
         ★ 写真⑥ 75インチビジョン写真
-        src を変更: 例 hisui-villa-living-tv.jpg -->
+        src を変更: 例 hisui-villa-living-tv-scaled.jpg -->
       <article class="feature-card reveal reveal-delay-2">
         <div class="feature-img-wrap">
           <img
-            src="image/living.jpg"
+            src="https://hisuino.co.jp/wp-content/uploads/2026/05/living-scaled.jpg"
             alt="ひすい野ヴィラ 75インチ大型ビジョン"
             loading="lazy"
             onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph',style:'height:240px',innerHTML:'<span class=ph-icon>📺</span><span class=ph-label>75inch Vision</span>'}))"
@@ -383,7 +383,7 @@ header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justi
 
     <div class="message-photo">
       <img
-        src="image/gratitude-card.jpeg"
+        src="https://hisuino.co.jp/wp-content/uploads/2026/05/gratitude-card.jpeg"
         alt="ひすい野ヴィラ 丸テーブルでメッセージカードを書く様子。カラフルな便箋や絵葉書が並ぶ"
         loading="lazy"
         onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph message-photo-ph',innerHTML:'<span class=ph-icon>✉️</span><span class=ph-label>Message Table</span>'}))"
@@ -448,7 +448,7 @@ header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justi
       <article class="drink-card reveal reveal-delay-1">
         <div class="drink-img-wrap">
           <img
-            src="image/complimentary-drink-server.JPG"
+            src="https://hisuino.co.jp/wp-content/uploads/2026/05/complimentary-drink-server-scaled.jpg"
             alt="Daiohs TEATROドリンクサーバー。煎茶・カフェオレ・レモンティー・水の4種類"
             loading="lazy"
             >
@@ -463,11 +463,11 @@ header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justi
 
       <!-- バーカード 02
         ★ 写真⑩ コーヒーマシン
-        src を変更: 例 hisui-bar-coffee.jpg -->
+        src を変更: 例 hisui-bar-coffee-scaled.jpg -->
       <article class="drink-card reveal reveal-delay-2">
         <div class="drink-img-wrap">
           <img
-            src="image/high-end-coffe-maker.jpeg"
+            src="https://hisuino.co.jp/wp-content/uploads/2026/05/high-end-coffe-maker.jpeg"
             alt="KALDIコーヒーを使用した本格コーヒーマシン。カフェインレス対応"
             loading="lazy"
             onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph',style:'height:220px',innerHTML:'<span class=ph-icon>☕</span><span class=ph-label>Coffee Machine</span>'}))"
@@ -483,11 +483,11 @@ header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justi
 
       <!-- バーカード 03
         ★ 写真⑪ 冷蔵庫のドリンク
-        src を変更: 例 hisui-bar-fridge.jpg -->
+        src を変更: 例 hisui-bar-fridge-scaled.jpg -->
       <article class="drink-card reveal reveal-delay-3">
         <div class="drink-img-wrap">
           <img
-            src="image/complimentary-drinks-in-the-fridge.jpeg"
+            src="https://hisuino.co.jp/wp-content/uploads/2026/05/complimentary-drinks-in-the-fridge.jpeg"
             alt="オールインクルーシブの冷蔵庫。ビール・ノンアルコール・ジュース・お茶・水など"
             loading="lazy"
             onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'img-ph',style:'height:220px',innerHTML:'<span class=ph-icon>🧊</span><span class=ph-label>Cold Drinks</span>'}))"
