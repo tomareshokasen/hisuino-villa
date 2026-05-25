@@ -205,6 +205,7 @@ section{padding:100px 40px;}
   .footer{padding:32px 20px;}
 }
 
+
     /* MOBILE */
 .mobile-cta{ display:none; position:fixed; bottom:0; left:0; right:0; z-index:100; }
 .mobile-cta a{ text-decoration:none; font-size:12px; letter-spacing:0.08em; font-family:'Noto Serif JP',serif; font-weight:400; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:8px 6px; }
@@ -214,9 +215,9 @@ section{padding:100px 40px;}
 .mobile-cta{ display:flex; }
 @media(max-width:700px){ .mobile-cta{ display:flex; flex-direction:row; } }
 
-　　/* HEADER */
+/* HEADER */
 header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justify-content:space-between; align-items:center; padding:16px 40px; background:rgba(250,247,243,0.94); backdrop-filter:blur(10px); border-bottom:1px solid rgba(196,160,106,0.25); }
-.header-logo{ font-family:'Noto Serif JP',serif; font-size:18px; letter-spacing:0.14em; color:var(--wood-dark);  text-decoration:none; }
+.header-logo{ font-family:'Noto Serif JP',serif; font-size:18px; letter-spacing:0.14em; color:var(--wood-dark); text-decoration:none; }
 .header-logo span{ display:block; font-size:12px; letter-spacing:0.25em; color:var(--gray-mid); font-family:'Cormorant Garamond',serif; }
 .header-buttons{ display:flex; align-items:center; gap:10px; }
 .btn-header-outline{ display:inline-block; padding:10px 20px; font-size:13px; color:var(--wood-dark); background:transparent; border:1.5px solid var(--wood-dark); border-radius:4px; text-decoration:none; white-space:nowrap; transition:background 0.25s; }
@@ -225,22 +226,47 @@ header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justi
 .btn-header-primary:hover{ background:var(--wood-mid); }
 .btn-full{ display:inline; }
 .btn-short{ display:none; }
-    
+
+/* ══════════════════════════════════════════
+   ナレッジ §8: スマートフォン対応
+══════════════════════════════════════════ */
+@media(max-width:768px){
+  header{ padding:12px 16px !important; }
+  .header-logo{ font-size:13px; }                                         
+  .header-logo span{ font-size:9px; }                                      
+  .btn-header-outline,.btn-header-primary{ font-size:11px !important; padding:8px 12px; } 
+  section{ padding:72px 24px; }
+  .hero__content{ padding:0 24px 60px; }
+  .hero__nav{ gap:20px; }
+  .hero__title{ font-size:28px; }
+  .section-title{ font-size:22px; }
+  .wood-band{ padding:14px 24px; }
+  .two-col{ grid-template-columns:1fr; gap:32px; }
+  .two-col.reverse-mobile .col-photo{ order:-1; }
+  .bath-hero__content{ grid-template-columns:1fr; padding:60px 24px; }
+  .bath-hero__overlay{ background:linear-gradient(to bottom, rgba(30,25,20,0.85) 0%, rgba(30,25,20,0.70) 100%); }
+  .philosophy{ padding:72px 24px; }
+  footer{ padding:28px 24px; }
+  .btn-primary{ padding:15px 32px; min-height:44px; }
+}
+
 @media(max-width:480px){
   .btn-full{ display:none; }
   .btn-short{ display:inline; }
   .btn-header-outline,.btn-header-primary{ padding:8px 14px; font-size:11px; }
 }
+
+
     
   </style>
 </head>
 <body>
   
 <header>
-  <div class="header-logo">
+  <a href="index.html" class="header-logo">
     ひすい野ヴィラ
     <span>Hisuino Villa</span>
-  </div>
+  </a>
   <div class="header-buttons">
     <a href="index.html#price" class="btn-header-outline">
       <span class="btn-full">ご利用料金を見る</span>
