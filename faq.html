@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>よくあるご質問 | ひすい野ヴィラ</title>
+  <meta name="description" content="ひすい野ヴィラに関するよくあるご質問をまとめました。収容人数・宗教・料金・火葬場についてなど、お気軽にご確認ください。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
+  <style>
+:root{
+  --wood-dark:#7a5c3e; --wood-mid:#a07850; --wood-light:#c4a06a;
+  --orange-warm:#e8a96a; --orange-pale:#f5e6d3; --orange-faint:#faf3eb;
+  --gray-dark:#4a4845; --gray-mid:#7c7874; --gray-light:#b8b4b0; --gray-faint:#f0edea;
+  --cream:#faf7f3; --white:#ffffff; --charcoal:#2e2b28;
+}
+*{ margin:0; padding:0; box-sizing:border-box; }
+body{ font-family:'Noto Sans JP',sans-serif; font-weight:300; color:var(--charcoal); background:var(--cream); line-height:1.9; }
+
+/* HEADER */
+header{ position:fixed; top:0; left:0; right:0; z-index:100; display:flex; justify-content:space-between; align-items:center; padding:16px 40px; background:rgba(250,247,243,0.94); backdrop-filter:blur(10px); border-bottom:1px solid rgba(196,160,106,0.25); }
+.header-logo{ font-family:'Noto Serif JP',serif; font-size:18px; letter-spacing:0.14em; color:var(--wood-dark); text-decoration:none; }
+.header-logo span{ display:block; font-size:12px; letter-spacing:0.25em; color:var(--gray-mid); font-family:'Cormorant Garamond',serif; font-style:italic; }
+.header-nav{ display:flex; gap:12px; }
+.btn-header-outline{ padding:8px 20px; border:0.5px solid rgba(196,160,106,0.6); background:transparent; color:var(--wood-dark); font-size:12px; letter-spacing:0.12em; font-family:'Noto Serif JP',serif; cursor:pointer; text-decoration:none; transition:background 0.2s; }
+.btn-header-outline:hover{ background:var(--orange-faint); }
+.btn-header-primary{ padding:8px 20px; background:var(--orange-warm); color:var(--charcoal); font-size:12px; letter-spacing:0.12em; font-family:'Noto Serif JP',serif; border:none; cursor:pointer; text-decoration:none; transition:background 0.2s; }
+.btn-header-primary:hover{ background:#f0b87a; }
+
+/* HERO */
+.faq-hero{ padding:140px 40px 80px; text-align:center; background:var(--cream); border-bottom:1px solid rgba(196,160,106,0.15); }
+.faq-hero .section-label{ display:block; font-family:'Cormorant Garamond',serif; font-size:12px; letter-spacing:0.28em; color:var(--wood-mid); text-transform:uppercase; margin-bottom:14px; }
+.faq-hero h1{ font-family:'Noto Serif JP',serif; font-size:clamp(24px,3vw,36px); font-weight:300; letter-spacing:0.12em; color:var(--charcoal); margin-bottom:16px; }
+.faq-hero p{ font-size:13px; color:var(--gray-mid); letter-spacing:0.08em; line-height:2; }
+.hero-divider{ width:40px; height:1px; background:var(--wood-mid); margin:20px auto 0; }
+
+/* FAQ SECTION */
+.faq-section{ max-width:800px; margin:0 auto; padding:80px 40px 120px; }
+
+.faq-category{ margin-bottom:60px; }
+.faq-category-title{ font-family:'Cormorant Garamond',serif; font-size:11px; letter-spacing:0.3em; color:var(--wood-mid); text-transform:uppercase; margin-bottom:24px; padding-bottom:10px; border-bottom:0.5px solid rgba(196,160,106,0.3); }
+
+.faq-list{ list-style:none; }
+.faq-item{ border-bottom:0.5px solid rgba(196,160,106,0.2); }
+.faq-q{
+  width:100%; text-align:left; background:none; border:none; cursor:pointer;
+  padding:22px 0; display:flex; justify-content:space-between; align-items:flex-start; gap:16px;
+  font-family:'Noto Serif JP',serif; font-size:14px; font-weight:400; color:var(--charcoal);
+  letter-spacing:0.06em; line-height:1.7;
+}
+.faq-q:hover{ color:var(--wood-dark); }
+.faq-q-label{ display:flex; align-items:flex-start; gap:14px; }
+.faq-q-num{ font-family:'Cormorant Garamond',serif; font-size:11px; color:var(--wood-light); letter-spacing:0.1em; flex-shrink:0; padding-top:3px; }
+.faq-q-arrow{ font-size:10px; color:var(--wood-light); flex-shrink:0; transition:transform 0.3s; padding-top:5px; }
+.faq-q[aria-expanded="true"] .faq-q-arrow{ transform:rotate(180deg); }
+.faq-a{
+  display:none; padding:0 0 24px 28px;
+  font-size:13px; color:var(--gray-mid); line-height:2; letter-spacing:0.05em;
+}
+.faq-a.open{ display:block; }
+.faq-a strong{ color:var(--wood-dark); font-weight:400; }
+
+/* CONTACT BANNER */
+.contact-banner{ background:var(--charcoal); padding:60px 40px; text-align:center; }
+.contact-banner p{ font-family:'Noto Serif JP',serif; font-size:14px; color:rgba(255,235,210,0.7); letter-spacing:0.1em; line-height:2; margin-bottom:28px; }
+.contact-banner a{ display:inline-block; padding:14px 48px; background:var(--orange-warm); color:var(--charcoal); font-family:'Noto Serif JP',serif; font-size:13px; letter-spacing:0.15em; text-decoration:none; transition:background 0.2s; }
+.contact-banner a:hover{ background:#f0b87a; }
+
+/* FOOTER */
+footer{ background:#1a1714; padding:32px 40px; text-align:center; }
+footer p{ font-size:11px; color:rgba(255,235,210,0.3); letter-spacing:0.15em; }
+
+/* MOBILE CTA */
+.mobile-cta{ display:none; position:fixed; bottom:0; left:0; right:0; z-index:100; }
+.mobile-cta a{ text-decoration:none; font-size:12px; letter-spacing:0.08em; font-family:'Noto Serif JP',serif; font-weight:400; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; padding:11px 6px; }
+.mobile-cta a:first-child{ background:var(--orange-warm); color:var(--charcoal); flex:3; }
+.mobile-cta a:nth-child(2){ background:#faf7f3; color:#7a5c3e; border-left:0.5px solid rgba(196,160,106,0.3); flex:2; }
+.mobile-cta a:last-child{ background:#faf7f3; color:#a07850; border:0.5px solid rgba(196,160,106,0.5); border-bottom:none; font-family:'Cormorant Garamond',serif; font-style:italic; font-size:11px; flex:none; width:52px; }
+
+/* REVEAL */
+.reveal{ opacity:0; transform:translateY(16px); transition:opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible{ opacity:1; transform:none; }
+
+@media(max-width:768px){
+  header{ padding:12px 20px; }
+  .header-nav{ gap:8px; }
+  .btn-header-outline,.btn-header-primary{ font-size:11px; padding:8px 12px; }
+  .faq-hero{ padding:110px 24px 60px; }
+  .faq-section{ padding:52px 20px 100px; }
+  .contact-banner{ padding:48px 24px; }
+  footer{ padding:28px 20px; }
+  .mobile-cta{ display:flex; }
+}
+  </style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="header-logo">
+    ひすい野ヴィラ
+    <span>Hisuino Villa</span>
+  </a>
+  <nav class="header-nav">
+    <a href="index.html#price" class="btn-header-outline">ご利用料金を見る</a>
+    <a href="index.html#contact" class="btn-header-primary">お問い合わせ</a>
+  </nav>
+</header>
+
+<div class="faq-hero">
+  <span class="section-label reveal">FAQ</span>
+  <h1 class="reveal">よくあるご質問</h1>
+  <div class="hero-divider reveal"></div>
+  <p class="reveal" style="margin-top:20px;">ご不明な点がございましたら、お気軽にお問い合わせください。</p>
+</div>
+
+<div class="faq-section">
+
+  <div class="faq-category reveal">
+    <p class="faq-category-title">エリア・火葬場について</p>
+    <dl class="faq-list">
+
+      <div class="faq-item">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          <span class="faq-q-label">
+            <span class="faq-q-num">Q.</span>
+            黒部市に住んでいますが、朝日町でお葬式はできますか？
+          </span>
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">可能です。黒部の方でも、朝日町でご葬儀を行い、朝日の斎場で火葬ができます。<br><br>実は2019年から、魚津・黒部・入善・朝日の方は、朝日と魚津どちらの火葬場を利用しても料金が変わらなくなりました。</dd>
+      </div>
+
+    </dl>
+  </div>
+
+  <div class="faq-category reveal">
+    <p class="faq-category-title">施設・空間について</p>
+    <dl class="faq-list">
+
+      <div class="faq-item">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          <span class="faq-q-label">
+            <span class="faq-q-num">Q.</span>
+            ひすい野ヴィラのお別れ空間の収容人数を教えてください。
+          </span>
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">最適なご参列人数は15〜40名様です。全館に椅子を敷き詰める場合、最大60名様までお参り可能です。少人数の家族葬から、ご親族・お知り合いを広くお招きする葬儀まで幅広く行うことができます。</dd>
+      </div>
+
+      <div class="faq-item">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          <span class="faq-q-label">
+            <span class="faq-q-num">Q.</span>
+            宗教・宗派の制限はありますか？
+          </span>
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">宗教・宗派の制限はございません。ご希望の送り方をお気軽にご相談ください。</dd>
+      </div>
+
+      <div class="faq-item">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          <span class="faq-q-label">
+            <span class="faq-q-num">Q.</span>
+            地元天然石の香炉石について詳しく教えてください。
+          </span>
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">朝日・入善・黒部の山川海から丁寧に拾い集めた天然石を、宝石と同じ工程で14日余りかけて磨き上げたオリジナルの香炉石です。同じ石は2つとなく、故人様が歩まれたこの扇状地への感謝と愛着が静かに伝わる、ひすい野ヴィラならではのしつらえです。権利自治体・観光協会・ほか資源を守る各団体さまからのご快諾ご協力のもと一つ一つスタッフの手で拾い集めました。天然石研磨は、佐渡石材さま監修ご協力のもと、朝日町を代表する宝石ヒスイと同じ工程で磨きをかけております。</dd>
+      </div>
+
+    </dl>
+  </div>
+
+  <div class="faq-category reveal">
+    <p class="faq-category-title">お花・装飾について</p>
+    <dl class="faq-list">
+
+      <div class="faq-item">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          <span class="faq-q-label">
+            <span class="faq-q-num">Q.</span>
+            祭壇のお花はどの程度自由にカスタマイズできますか？
+          </span>
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">木目調ベースの洋風祭壇はそのままに、お花の色味やボリュームをご家族のご希望に合わせてアレンジできます。費用が不透明に膨らまないよう、プランナーが見本をご覧いただきながらご希望を伺います。</dd>
+      </div>
+
+      <div class="faq-item">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          <span class="faq-q-label">
+            <span class="faq-q-num">Q.</span>
+            メモリアルコーナーには何を飾れますか？
+          </span>
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">趣味のお道具、写真アルバム、ご家族からのお手紙、大好物やお酒など、故人様の人生を物語るものであれば基本的に自由に飾っていただけます。釣り道具やバイクなど、個性的なお品物をお飾りされる方もおいでです。</dd>
+      </div>
+
+    </dl>
+  </div>
+
+  <div class="faq-category reveal">
+    <p class="faq-category-title">オープン・見学について</p>
+    <dl class="faq-list">
+
+      <div class="faq-item">
+        <dt class="faq-q" role="button" tabindex="0" aria-expanded="false">
+          <span class="faq-q-label">
+            <span class="faq-q-num">Q.</span>
+            ヴィラの使用や見学をしたい場合はどのようにしたらいいですか？
+          </span>
+          <span class="faq-q-arrow" aria-hidden="true">▼</span>
+        </dt>
+        <dd class="faq-a">ページ下部より、お電話もしくはLINEにてご希望をお申し付けくださいませ。</dd>
+      </div>
+
+    </dl>
+  </div>
+
+</div>
+
+<div class="contact-banner">
+  <p>ご不明な点はお気軽にご相談ください。<br>スタッフが丁寧にご説明いたします。</p>
+  <a href="index.html#contact">お問い合わせはこちら</a>
+</div>
+
+<footer>
+  <p>&copy; 2026 有限会社高松葬祭 All Rights Reserved.</p>
+</footer>
+
+<div class="mobile-cta">
+  <a href="tel:0765838855">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.18 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.6a16 16 0 0 0 6.29 6.29l.96-.96a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+    今すぐ電話で相談する
+  </a>
+  <a href="index.html#faq">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    よくある質問
+  </a>
+  <a href="#" onclick="window.scrollTo({top:0,behavior:'smooth'});return false;">
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+    TOP
+  </a>
+</div>
+
+<script>
+const obs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if(e.isIntersecting){ e.target.classList.add('visible'); obs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+
+document.querySelectorAll('.faq-q').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', !expanded);
+    const ans = btn.nextElementSibling;
+    ans.classList.toggle('open', !expanded);
+  });
+  btn.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); btn.click(); }
+  });
+});
+</script>
+</body>
+</html>
