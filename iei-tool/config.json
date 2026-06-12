@@ -1,0 +1,10 @@
+{
+  "gemini_api_key": "",
+  "nas_input_path": "",
+  "nas_output_path": "",
+  "nas_bg_assets_path": "",
+  "default_bg_color": "#ffffff",
+  "video_duration_per_bg": 45,
+  "video_fade_duration": 3,
+  "video_fps": 24
+}
