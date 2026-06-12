@@ -1,111 +1,113 @@
-"""Generate print-ready layout images for A3ノビ and A5 paper."""
-from PIL import Image, ImageDraw, ImageFont
-import math
+"""
+Generate print-ready composite layouts for A3-nobi and A5 paper.
+
+A3ノビ layout  (329×483mm @350dpi = 4537×6661px):
+  Top row:    四つ切り (254×305mm) centered horizontally
+  Bottom row: キャビネ (130×178mm) + 3×mini (48×68mm each) side by side
+
+A5 layout (148×210mm @350dpi = 2040×2894px):
+  One キャビネ centred, OR grid of mini prints
+"""
+
+import json
+from PIL import Image, ImageDraw
 
 
-def mm_to_px(mm: float, dpi: int = 350) -> int:
-    return round(mm / 25.4 * dpi)
+MM_TO_PX_350 = 350 / 25.4  # pixels per mm at 350 dpi
 
 
-# Paper sizes
-A3NOBI_W = mm_to_px(329)
-A3NOBI_H = mm_to_px(483)
-A5_W = mm_to_px(148)
-A5_H = mm_to_px(210)
-
-# Photo sizes (350dpi)
-YOTSUGIRI_W = mm_to_px(254)
-YOTSUGIRI_H = mm_to_px(305)
-CABINET_W = mm_to_px(130)
-CABINET_H = mm_to_px(178)
-MINI_W = mm_to_px(48)
-MINI_H = mm_to_px(68)
-
-GAP = mm_to_px(3)   # 3mm gap between photos
+def mm_px(mm: float) -> int:
+    return round(mm * MM_TO_PX_350)
 
 
-def _place(canvas: Image.Image, photo: Image.Image, x: int, y: int) -> None:
-    if photo.mode == "RGBA":
-        canvas.paste(photo, (x, y), photo)
-    else:
-        canvas.paste(photo, (x, y))
+# Paper sizes at 350 dpi
+A3NOBI_W = mm_px(329)
+A3NOBI_H = mm_px(483)
+A5_W = mm_px(148)
+A5_H = mm_px(210)
+
+# Photo sizes at 350 dpi
+Y_W, Y_H = mm_px(254), mm_px(305)   # 四つ切り
+C_W, C_H = mm_px(130), mm_px(178)   # キャビネ
+M_W, M_H = mm_px(48),  mm_px(68)    # アスカネットmini (portrait)
+
+GAP = mm_px(4)   # 4mm gutter between photos
 
 
-def a3nobi_layout(yotsugiri: Image.Image, cabinet: Image.Image,
-                  minis: list) -> Image.Image:
+def _paste_center_x(canvas: Image.Image, photo: Image.Image, y: int):
+    x = (canvas.width - photo.width) // 2
+    canvas.paste(photo, (x, y))
+
+
+def _cut_marks(draw: ImageDraw.ImageDraw, x: int, y: int, w: int, h: int,
+               tick: int = mm_px(3), color=(180, 180, 180)):
+    """Draw small corner cut marks around the photo area."""
+    for cx, cy in [(x, y), (x + w, y), (x, y + h), (x + w, y + h)]:
+        dx = tick if cx == x else -tick
+        dy = tick if cy == y else -tick
+        draw.line([(cx + dx, cy), (cx, cy)], fill=color, width=2)
+        draw.line([(cx, cy + dy), (cx, cy)], fill=color, width=2)
+
+
+def build_a3nobi(yotsugiri: Image.Image, cabinet: Image.Image,
+                 minis: list) -> Image.Image:
     """
-    Layout on A3ノビ (329×483mm @ 350dpi):
-      Top: 四つ切り centered horizontally
-      Bottom row: キャビネ + up to 3 minis side by side
+    yotsugiri: PIL RGB image (already at 四つ切りサイズ or will be resized)
+    cabinet:   PIL RGB image
+    minis:     list of up to 3 PIL RGB images
+    Returns A3ノビ composite at 350 dpi.
     """
-    canvas = Image.new("RGB", (A3NOBI_W, A3NOBI_H), "#ffffff")
+    canvas = Image.new("RGB", (A3NOBI_W, A3NOBI_H), (255, 255, 255))
     draw = ImageDraw.Draw(canvas)
 
-    # Scale 四つ切り to fit width with margin
-    margin = mm_to_px(5)
-    yo = yotsugiri.convert("RGB").resize((YOTSUGIRI_W, YOTSUGIRI_H), Image.LANCZOS)
-    yo_x = (A3NOBI_W - YOTSUGIRI_W) // 2
-    yo_y = margin
-    _place(canvas, yo, yo_x, yo_y)
+    # --- Top: 四つ切り centered ---
+    y_top = GAP
+    yo = yotsugiri.convert("RGB").resize((Y_W, Y_H), Image.LANCZOS)
+    _paste_center_x(canvas, yo, y_top)
+    _cut_marks(draw, (A3NOBI_W - Y_W) // 2, y_top, Y_W, Y_H)
 
-    # Bottom row starts below 四つ切り
-    bottom_y = yo_y + YOTSUGIRI_H + GAP
+    # --- Bottom row: キャビネ + up to 3 mini ---
+    y_bottom = y_top + Y_H + GAP
+    x_left = GAP
 
-    # キャビネ
-    cab = cabinet.convert("RGB").resize((CABINET_W, CABINET_H), Image.LANCZOS)
-    cab_x = margin
-    cab_y = bottom_y + (A3NOBI_H - bottom_y - CABINET_H) // 2
-    _place(canvas, cab, cab_x, cab_y)
+    cab = cabinet.convert("RGB").resize((C_W, C_H), Image.LANCZOS)
+    canvas.paste(cab, (x_left, y_bottom))
+    _cut_marks(draw, x_left, y_bottom, C_W, C_H)
 
-    # Minis (up to 3)
-    mini_start_x = cab_x + CABINET_W + GAP
-    mini_start_y = bottom_y + GAP
-    for i, mini_img in enumerate(minis[:3]):
-        m = mini_img.convert("RGB").resize((MINI_W, MINI_H), Image.LANCZOS)
-        mx = mini_start_x + i * (MINI_W + GAP)
-        my = mini_start_y
-        _place(canvas, m, mx, my)
-
-    # Cut marks (thin lines between photos)
-    lc = "#cccccc"
-    # Below 四つ切り
-    draw.line([(0, bottom_y - GAP // 2), (A3NOBI_W, bottom_y - GAP // 2)], fill=lc, width=2)
+    x_mini = x_left + C_W + GAP * 2
+    for i, m in enumerate(minis[:3]):
+        mini = m.convert("RGB").resize((M_W, M_H), Image.LANCZOS)
+        mx = x_mini + i * (M_W + GAP)
+        my = y_bottom + (C_H - M_H) // 2   # vertically centered relative to cabinet
+        canvas.paste(mini, (mx, my))
+        _cut_marks(draw, mx, my, M_W, M_H)
 
     return canvas
 
 
-def a5_layout(photos: list, size_label: str = "cabinet") -> Image.Image:
-    """
-    A5 layout. キャビネ: 1 per sheet centered. mini: up to 6 per sheet in a grid.
-    """
-    canvas = Image.new("RGB", (A5_W, A5_H), "#ffffff")
-    margin = mm_to_px(5)
+def build_a5_cabinet(cabinet: Image.Image) -> Image.Image:
+    canvas = Image.new("RGB", (A5_W, A5_H), (255, 255, 255))
+    draw = ImageDraw.Draw(canvas)
+    cab = cabinet.convert("RGB").resize((C_W, C_H), Image.LANCZOS)
+    x = (A5_W - C_W) // 2
+    y = (A5_H - C_H) // 2
+    canvas.paste(cab, (x, y))
+    _cut_marks(draw, x, y, C_W, C_H)
+    return canvas
 
-    if size_label == "cabinet":
-        pw, ph = CABINET_W, CABINET_H
-    else:
-        pw, ph = MINI_W, MINI_H
 
-    if size_label == "cabinet":
-        # Single cabinet centered
-        p = photos[0].convert("RGB").resize((pw, ph), Image.LANCZOS)
-        x = (A5_W - pw) // 2
-        y = (A5_H - ph) // 2
-        _place(canvas, p, x, y)
-    else:
-        # Grid of minis
-        cols = (A5_W - 2 * margin + GAP) // (MINI_W + GAP)
-        cols = max(1, cols)
-        x0 = margin
-        y0 = margin
-        for i, photo in enumerate(photos[:12]):
-            row = i // cols
-            col = i % cols
-            p = photo.convert("RGB").resize((MINI_W, MINI_H), Image.LANCZOS)
-            x = x0 + col * (MINI_W + GAP)
-            y = y0 + row * (MINI_H + GAP)
-            if y + MINI_H > A5_H - margin:
-                break
-            _place(canvas, p, x, y)
-
+def build_a5_mini(minis: list) -> Image.Image:
+    """Arrange up to 6 mini prints on A5 in a 3-column grid."""
+    canvas = Image.new("RGB", (A5_W, A5_H), (255, 255, 255))
+    draw = ImageDraw.Draw(canvas)
+    cols = 3
+    margin_x = (A5_W - cols * M_W - (cols - 1) * GAP) // 2
+    for i, m in enumerate(minis[:6]):
+        mini = m.convert("RGB").resize((M_W, M_H), Image.LANCZOS)
+        col = i % cols
+        row = i // cols
+        x = margin_x + col * (M_W + GAP)
+        y = GAP + row * (M_H + GAP)
+        canvas.paste(mini, (x, y))
+        _cut_marks(draw, x, y, M_W, M_H)
     return canvas

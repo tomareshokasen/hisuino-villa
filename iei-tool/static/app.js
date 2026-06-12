@@ -1,856 +1,854 @@
-/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-   ひすい野ヴィラ 遺影写真作成ツール — Frontend JS
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+/* =====================================================
+   遺影写真作成ツール - Frontend Logic
+   ===================================================== */
+
+"use strict";
 
 // ── State ─────────────────────────────────────────────
-let sessionId = null;
-let currentStep = 1;
-let selectedBgColor = "#ffffff";
-let selectedSizeId = "yotsugiri";
-let outputTypes = { yotsugiri: 1, cabinet: 1, askanet_mini: 3, video: true };
-let bgSlotFiles = [null, null, null, null, null, null];  // up to 6 bg images
-let allSizes = [];
-let allPresets = { formal: [], casual: [] };
-let undoStack = [];  // stores previous preview URLs
-let pollTimers = {};
+const state = {
+  sessionId: null,
+  currentStep: 1,
+  bgColor: "#ffffff",
+  selectedSizeId: null,
+  bgFiles: [],           // uploaded background filenames (video)
+  outputChoices: {},     // { yotsugiri: 1, cabinet: 1, askanet_mini: 3, video: true }
+  comparing: false,
+  personBoxes: [],
+  videoDuration: 45,
+  videoFade: 3,
+};
 
-// ── Startup ───────────────────────────────────────────
-document.addEventListener("DOMContentLoaded", () => {
-  document.getElementById("startupModal").classList.remove("hidden");
-  initBgSlots();
-  loadSizes();
-  loadPresets();
-  loadSettings();
-  setupUpload();
-  initRangeDisplays();
-});
+// ── Helpers ───────────────────────────────────────────
+function qs(sel, ctx = document) { return ctx.querySelector(sel); }
+function qsa(sel, ctx = document) { return [...ctx.querySelectorAll(sel)]; }
 
-function closeStartupModal() {
-  document.getElementById("startupModal").classList.add("hidden");
-  newSession();
+function toast(msg, dur = 2800) {
+  const el = qs("#toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove("show"), dur);
 }
 
-function toggleOutputType(card) {
-  const type = card.dataset.type;
-  card.classList.toggle("selected");
-  if (type === "video") {
-    outputTypes.video = card.classList.contains("selected");
+async function apiFetch(url, options = {}) {
+  const r = await fetch(url, {
+    headers: { "Content-Type": "application/json" },
+    ...options,
+  });
+  return r.json();
+}
+
+function setPreview(url, withCompare = false) {
+  const img = qs("#preview-img");
+  const ph = qs("#preview-placeholder");
+  const cw = qs("#compare-wrap");
+
+  if (!url) {
+    img.style.display = "none";
+    ph.style.display = "flex";
+    cw.classList.remove("visible");
+    return;
+  }
+  ph.style.display = "none";
+  if (withCompare) {
+    qs("#compare-after").src = url + "&t=" + Date.now();
+    cw.classList.add("visible");
+    img.style.display = "none";
+  } else {
+    cw.classList.remove("visible");
+    img.style.display = "block";
+    img.src = url + "?t=" + Date.now();
   }
 }
 
-function changeQty(e, type, delta) {
-  e.stopPropagation();
-  const el = document.getElementById(`qty-${type}`);
-  let v = parseInt(el.textContent) + delta;
-  v = Math.max(1, Math.min(10, v));
-  el.textContent = v;
-  outputTypes[type] = v;
+function previewUrl(name = "current.png") {
+  return `/session/${state.sessionId}/preview?name=${name}`;
 }
 
-// ── Session ───────────────────────────────────────────
-async function newSession() {
-  const r = await api("/session/new", "POST");
-  sessionId = r.session_id;
-  undoStack = [];
-  updateUndoBtn();
+function refreshPreview(name) {
+  setPreview(previewUrl(name));
 }
 
-// ── Upload ────────────────────────────────────────────
-function setupUpload() {
-  const zone = document.getElementById("uploadZone");
-  const input = document.getElementById("fileInput");
+// ── Job polling ───────────────────────────────────────
+function pollJob(jobId, onDone, onError, progressBarSel, msgSel) {
+  const bar = progressBarSel ? qs(progressBarSel) : null;
+  const msg = msgSel ? qs(msgSel) : null;
 
+  const interval = setInterval(async () => {
+    const j = await apiFetch(`/job/${jobId}`);
+    if (bar) bar.style.width = j.progress + "%";
+    if (msg) msg.textContent = j.message || "";
+    if (j.status === "done") {
+      clearInterval(interval);
+      onDone(j.result);
+    } else if (j.status === "error") {
+      clearInterval(interval);
+      onError(j.error || "エラーが発生しました");
+    }
+  }, 1500);
+}
+
+// ── Step navigation ───────────────────────────────────
+function goToStep(n) {
+  if (!state.sessionId && n > 1) { toast("先に写真を読み込んでください"); return; }
+  state.currentStep = n;
+  qsa(".step-panel").forEach(p => p.classList.remove("active"));
+  qsa(".step-tab").forEach((t, i) => {
+    t.classList.toggle("active", i + 1 === n);
+  });
+  qs(`#step-${n}`).classList.add("active");
+}
+
+// ── STEP 1: Upload ────────────────────────────────────
+function initUpload() {
+  const zone = qs("#upload-zone");
+  const input = qs("#file-input");
+
+  zone.addEventListener("click", () => input.click());
   zone.addEventListener("dragover", e => { e.preventDefault(); zone.classList.add("drag-over"); });
   zone.addEventListener("dragleave", () => zone.classList.remove("drag-over"));
   zone.addEventListener("drop", e => {
     e.preventDefault();
     zone.classList.remove("drag-over");
-    const f = e.dataTransfer.files[0];
-    if (f) uploadFile(f);
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) uploadFile(file);
   });
-  input.addEventListener("change", () => { if (input.files[0]) uploadFile(input.files[0]); });
+  input.addEventListener("change", e => {
+    if (e.target.files[0]) uploadFile(e.target.files[0]);
+  });
 }
 
 async function uploadFile(file) {
-  if (!sessionId) await newSession();
-  showToast("アップロード中...", "");
+  const zone = qs("#upload-zone");
+  zone.innerHTML = `<div class="spinner"></div><p style="margin-top:8px;color:var(--gray-mid)">読み込み中…</p>`;
+
   const fd = new FormData();
   fd.append("file", file);
-  const r = await fetch(`/session/${sessionId}/upload`, { method: "POST", body: fd }).then(x => x.json());
-  if (r.error) { showToast(r.error, "error"); return; }
-  showToast("アップロード完了", "success");
-  document.getElementById("previewPlaceholder").classList.add("hidden");
-  document.getElementById("previewImg").classList.remove("hidden");
+  const r = await fetch("/upload", { method: "POST", body: fd });
+  const data = await r.json();
+
+  if (data.error) { toast("❌ " + data.error); resetUploadZone(); return; }
+  state.sessionId = data.session_id;
+
   refreshPreview();
-  document.getElementById("goStep2Btn").disabled = false;
-  document.getElementById("previewInfo").textContent = `${r.w} × ${r.h} px`;
-  // Show person select section
-  document.getElementById("personSelectSection").classList.remove("hidden");
-  document.querySelector("[data-step='1']").classList.add("done");
+  toast("✅ 写真を読み込みました");
+  resetUploadZone();
+
+  // Show detect persons button
+  qs("#btn-detect-persons").style.display = "inline-flex";
+  goToStep(2);
 }
 
-// ── Person selection ──────────────────────────────────
+function resetUploadZone() {
+  qs("#upload-zone").innerHTML = `
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+    <p class="upload-title">写真をここにドロップ</p>
+    <p style="color:var(--gray-mid);font-size:12px;margin:8px 0">または</p>
+    <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">ファイルを選択</button>
+    <p class="upload-hint">JPG・PNG・TIFF・BMP 対応</p>
+    <input type="file" id="file-input" accept="image/*" hidden>`;
+  initUpload();
+}
+
+// ── STEP 1: Person detection ──────────────────────────
 async function detectPersons() {
-  if (!sessionId) return;
-  showJobStatus("personsOverlayWrap", "人物を検出中...", 50);
-  const r = await api(`/session/${sessionId}/detect_persons`, "POST");
-  clearJobStatus("personsOverlayWrap");
-  if (r.error) { showToast(r.error, "error"); return; }
-  renderPersonBoxes(r.persons);
+  const btn = qs("#btn-detect-persons");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> 人物を検出中…`;
+
+  const { job_id } = await apiFetch(`/session/${state.sessionId}/detect_persons`, { method: "POST" });
+
+  pollJob(job_id,
+    result => {
+      btn.disabled = false;
+      btn.innerHTML = "👥 人物を検出";
+      if (!result || !result.persons || result.persons.length === 0) {
+        toast("人物が検出できませんでした。写真を確認してください。");
+        return;
+      }
+      showPersonBoxes(result.persons);
+    },
+    err => {
+      btn.disabled = false;
+      btn.innerHTML = "👥 人物を検出";
+      toast("❌ " + err);
+    }
+  );
 }
 
-function renderPersonBoxes(persons) {
-  const wrap = document.getElementById("personsOverlayWrap");
-  wrap.innerHTML = "";
-  if (!persons || persons.length === 0) {
-    wrap.innerHTML = '<p class="text-muted">人物が検出されませんでした。1人のみの写真として続けてください。</p>';
-    return;
-  }
-
-  const img = document.getElementById("previewImg");
-  const iw = img.naturalWidth || 800;
-  const ih = img.naturalHeight || 600;
-
-  const psWrap = document.createElement("div");
-  psWrap.className = "person-selector-wrap";
-  psWrap.style.cssText = `display:inline-block; position:relative;`;
-
-  const pimg = document.createElement("img");
-  pimg.src = img.src;
-  pimg.style.cssText = "max-width:100%; display:block; border-radius:2px;";
-  psWrap.appendChild(pimg);
+function showPersonBoxes(persons) {
+  state.personBoxes = persons;
+  const overlay = qs("#person-overlay");
+  overlay.innerHTML = "";
+  const img = qs("#preview-img");
+  const rect = img.getBoundingClientRect();
+  const prect = qs("#right-panel").getBoundingClientRect();
 
   persons.forEach(p => {
     const box = document.createElement("div");
     box.className = "person-box";
-    box.style.cssText = `left:${p.x*100}%; top:${p.y*100}%; width:${p.w*100}%; height:${p.h*100}%;`;
-    const lbl = document.createElement("span");
-    lbl.className = "person-box-label";
-    lbl.textContent = p.label || `人物${p.index+1}`;
-    box.appendChild(lbl);
-    box.onclick = () => selectPerson(p.label || `人物${p.index+1}`);
-    psWrap.appendChild(box);
+    box.style.left = ((p.x * rect.width) + (rect.left - prect.left)) + "px";
+    box.style.top = ((p.y * rect.height) + (rect.top - prect.top)) + "px";
+    box.style.width = (p.w * rect.width) + "px";
+    box.style.height = (p.h * rect.height) + "px";
+    box.innerHTML = `<span class="person-box-label">${p.label} ← クリックして選択</span>`;
+    box.addEventListener("click", () => selectPerson(p));
+    overlay.appendChild(box);
   });
 
-  wrap.appendChild(psWrap);
+  overlay.classList.add("visible");
+  toast("遺影にする方をクリックしてください");
 }
 
-async function selectPerson(label) {
-  showJobStatus("personJobStatus", `${label}を選択・切り出し中...`, 30);
-  const r = await api(`/session/${sessionId}/select_person`, "POST", { label });
-  if (r.error) { showToast(r.error, "error"); clearJobStatus("personJobStatus"); return; }
-  pollJob(r.job_id, "personJobStatus", () => {
-    refreshPreview();
-    showToast(`${label}を選択しました`, "success");
-    document.getElementById("personSelectSection").classList.add("hidden");
+async function selectPerson(person) {
+  qs("#person-overlay").classList.remove("visible");
+  qs("#person-overlay").innerHTML = "";
+  toast("人物を分離中…");
+
+  // Snapshot before
+  await apiFetch(`/session/${state.sessionId}/snapshot`, { method: "POST" });
+
+  const { job_id } = await apiFetch(`/session/${state.sessionId}/isolate_person`, {
+    method: "POST",
+    body: JSON.stringify({ label: person.label }),
   });
+
+  pollJob(job_id,
+    () => { refreshPreview(); toast("✅ " + person.label + "を分離しました"); },
+    err => toast("❌ " + err)
+  );
 }
 
-function skipPersonSelect() {
-  document.getElementById("personSelectSection").classList.add("hidden");
-}
-
-// ── Step navigation ───────────────────────────────────
-function switchStep(n) {
-  currentStep = n;
-  document.querySelectorAll(".step-tab").forEach(t => {
-    const tn = parseInt(t.dataset.step);
-    t.classList.toggle("active", tn === n);
+// ── STEP 2: Enhance ───────────────────────────────────
+function initEnhanceSliders() {
+  ["brightness", "contrast", "sharpness"].forEach(name => {
+    const slider = qs(`#slider-${name}`);
+    const valEl = qs(`#val-${name}`);
+    slider.addEventListener("input", () => {
+      valEl.textContent = slider.value;
+    });
   });
-  document.querySelectorAll(".step-panel").forEach(p => {
-    const pn = parseInt(p.id.replace("panel-",""));
-    p.classList.toggle("active", pn === n);
-  });
-  if (n === 5) refreshSizeOptions();
-}
-
-// ── Enhancement ───────────────────────────────────────
-function initRangeDisplays() {
-  [["brightness","brightnessVal"],["contrast","contrastVal"],["sharpness","sharpnessVal"],
-   ["durPerBg","durPerBgVal","秒"],["fadeDur","fadeDurVal","秒"],
-   ["s-dur","s-durVal","秒"],["s-fade","s-fadeVal","秒"]].forEach(([id, vid, sfx=""]) => {
-    const el = document.getElementById(id);
-    const vel = document.getElementById(vid);
-    if (el && vel) vel.textContent = el.value + sfx;
-  });
-}
-
-function updateRangeVal(id, valId, suffix) {
-  const el = document.getElementById(id);
-  const vel = document.getElementById(valId);
-  if (el && vel) vel.textContent = el.value + (suffix || "");
 }
 
 async function applyEnhance() {
-  if (!sessionId) return;
-  pushUndo();
-  const r = await api(`/session/${sessionId}/enhance`, "POST", {
-    brightness: parseFloat(document.getElementById("brightness").value),
-    contrast: parseFloat(document.getElementById("contrast").value),
-    sharpness: parseFloat(document.getElementById("sharpness").value),
-  });
-  if (r.ok) { refreshPreview(); showToast("補正を適用しました", "success"); }
+  const btn = qs("#btn-enhance");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> 補正中…`;
+
+  const body = {
+    brightness: parseFloat(qs("#slider-brightness").value),
+    contrast: parseFloat(qs("#slider-contrast").value),
+    sharpness: parseFloat(qs("#slider-sharpness").value),
+  };
+
+  await apiFetch(`/session/${state.sessionId}/enhance`, { method: "POST", body: JSON.stringify(body) });
+  refreshPreview();
+  btn.disabled = false;
+  btn.innerHTML = "補正を適用";
+  toast("✅ 補正しました");
 }
 
 async function geminiEnhance() {
-  if (!sessionId) return;
-  pushUndo();
-  const r = await api(`/session/${sessionId}/gemini_enhance`, "POST");
-  if (r.error) { showToast(r.error, "error"); return; }
-  pollJob(r.job_id, "enhanceJobStatus", () => {
-    refreshPreview();
-    showToast("AI高画質化が完了しました", "success");
-  });
+  const btn = qs("#btn-gemini-enhance");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> AI処理中…`;
+  qs("#enhance-progress").style.display = "block";
+
+  // Save before snapshot
+  await apiFetch(`/session/${state.sessionId}/snapshot`, { method: "POST" });
+
+  const { job_id } = await apiFetch(`/session/${state.sessionId}/gemini_enhance`, { method: "POST" });
+  pollJob(job_id,
+    () => {
+      refreshPreview();
+      btn.disabled = false;
+      btn.innerHTML = "✨ Gemini AI 高画質化";
+      qs("#enhance-progress").style.display = "none";
+      toast("✅ AI高画質化が完了しました");
+    },
+    err => {
+      btn.disabled = false;
+      btn.innerHTML = "✨ Gemini AI 高画質化";
+      qs("#enhance-progress").style.display = "none";
+      toast("❌ " + err);
+    },
+    "#enhance-progress .progress-fill",
+    "#enhance-progress .progress-msg"
+  );
 }
 
-// ── Background removal ────────────────────────────────
+// ── STEP 3: Background removal & AI edits ────────────
 async function removeBg() {
-  if (!sessionId) return;
-  pushUndo();
-  document.getElementById("removeBgBtn").disabled = true;
-  const r = await api(`/session/${sessionId}/remove_bg`, "POST");
-  if (r.error) { showToast(r.error, "error"); document.getElementById("removeBgBtn").disabled = false; return; }
-  pollJob(r.job_id, "bgRemoveJobStatus", () => {
-    refreshPreview();
-    showToast("背景除去が完了しました", "success");
-    document.getElementById("removeBgBtn").disabled = false;
+  const btn = qs("#btn-remove-bg");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> 切り抜き中…`;
+  qs("#bg-remove-progress").style.display = "block";
+
+  const { job_id } = await apiFetch(`/session/${state.sessionId}/remove_bg`, { method: "POST" });
+  pollJob(job_id,
+    () => {
+      refreshPreview();
+      btn.disabled = false;
+      btn.innerHTML = "✂️ 背景を除去する";
+      qs("#bg-remove-progress").style.display = "none";
+      toast("✅ 背景を除去しました");
+    },
+    err => {
+      btn.disabled = false;
+      btn.innerHTML = "✂️ 背景を除去する";
+      qs("#bg-remove-progress").style.display = "none";
+      toast("❌ " + err);
+    },
+    "#bg-remove-progress .progress-fill",
+    "#bg-remove-progress .progress-msg"
+  );
+}
+
+async function runGeminiEdit(endpoint, btnSel, label) {
+  const btn = qs(btnSel);
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> AI処理中…`;
+
+  await apiFetch(`/session/${state.sessionId}/snapshot`, { method: "POST" });
+  const { job_id } = await apiFetch(`/session/${state.sessionId}/${endpoint}`, { method: "POST" });
+
+  pollJob(job_id,
+    () => {
+      refreshPreview();
+      btn.disabled = false;
+      btn.innerHTML = label;
+      toast("✅ 処理が完了しました");
+    },
+    err => {
+      btn.disabled = false;
+      btn.innerHTML = label;
+      toast("❌ " + err);
+    }
+  );
+}
+
+async function applyClothingPreset(prompt) {
+  const btn = qs("#btn-apply-preset");
+  if (btn) { btn.disabled = true; btn.innerHTML = `<span class="spinner"></span>`; }
+
+  await apiFetch(`/session/${state.sessionId}/snapshot`, { method: "POST" });
+  const { job_id } = await apiFetch(`/session/${state.sessionId}/clothing`, {
+    method: "POST",
+    body: JSON.stringify({ prompt }),
   });
-}
 
-// ── AI edits ──────────────────────────────────────────
-async function removeProps() {
-  if (!sessionId) return;
-  pushUndo();
-  const r = await api(`/session/${sessionId}/gemini_remove_props`, "POST");
-  if (r.error) { showToast(r.error, "error"); return; }
-  pollJob(r.job_id, "aiEditJobStatus3", () => { refreshPreview(); showToast("持ち物を除去しました", "success"); });
-}
-
-async function removeOthers() {
-  if (!sessionId) return;
-  pushUndo();
-  const r = await api(`/session/${sessionId}/gemini_remove_others`, "POST");
-  if (r.error) { showToast(r.error, "error"); return; }
-  pollJob(r.job_id, "aiEditJobStatus3", () => { refreshPreview(); showToast("他の人物を除去しました", "success"); });
-}
-
-async function necktieBtnClick() {
-  if (!sessionId) return;
-  pushUndo();
-  const r = await api(`/session/${sessionId}/gemini_necktie`, "POST");
-  if (r.error) { showToast(r.error, "error"); return; }
-  pollJob(r.job_id, "aiEditJobStatus4", () => { refreshPreview(); showToast("ネクタイを黒に変更しました", "success"); });
-}
-
-async function applyPreset(prompt) {
-  if (!sessionId) return;
-  pushUndo();
-  const r = await api(`/session/${sessionId}/gemini_clothing`, "POST", { prompt });
-  if (r.error) { showToast(r.error, "error"); return; }
-  pollJob(r.job_id, "aiEditJobStatus4", () => { refreshPreview(); showToast("衣装を変更しました", "success"); });
+  pollJob(job_id,
+    () => {
+      refreshPreview();
+      if (btn) { btn.disabled = false; btn.innerHTML = "適用"; }
+      toast("✅ 衣装を変更しました");
+    },
+    err => {
+      if (btn) { btn.disabled = false; btn.innerHTML = "適用"; }
+      toast("❌ " + err);
+    }
+  );
 }
 
 async function applyCustomClothing() {
-  const prompt = document.getElementById("customClothingInput").value.trim();
-  if (!prompt) { showToast("衣装の指示を入力してください", "error"); return; }
-  if (!sessionId) return;
-  pushUndo();
-  const r = await api(`/session/${sessionId}/gemini_clothing`, "POST", { prompt });
-  if (r.error) { showToast(r.error, "error"); return; }
-  pollJob(r.job_id, "aiEditJobStatus4", () => { refreshPreview(); showToast("衣装を変更しました", "success"); });
-}
+  const instruction = qs("#custom-clothing-input").value.trim();
+  if (!instruction) { toast("指示を入力してください"); return; }
 
-// ── Output: photo ─────────────────────────────────────
-function selectSwatch(el) {
-  document.querySelectorAll(".swatch").forEach(s => s.classList.remove("selected"));
-  el.classList.add("selected");
-  selectedBgColor = el.dataset.color;
-}
+  const btn = qs("#btn-custom-clothing");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> AI処理中…`;
 
-function applyCustomColor(val) {
-  selectedBgColor = val;
-  document.querySelectorAll(".swatch").forEach(s => s.classList.remove("selected"));
-}
-
-function refreshSizeOptions() {
-  const list = document.getElementById("sizeOptionsList");
-  list.innerHTML = "";
-  allSizes.forEach(s => {
-    const div = document.createElement("div");
-    div.className = "size-option" + (s.id === selectedSizeId ? " selected" : "");
-    div.onclick = () => {
-      document.querySelectorAll(".size-option").forEach(o => o.classList.remove("selected"));
-      div.classList.add("selected");
-      selectedSizeId = s.id;
-    };
-    div.innerHTML = `
-      <input type="radio" name="sizeRadio" value="${s.id}" ${s.id === selectedSizeId ? "checked" : ""}>
-      <div class="size-option-info">
-        <div class="size-label">${s.label}</div>
-        <div class="size-detail">${s.width_mm}×${s.height_mm}mm / ${s.dpi}dpi / ${s.px_w}×${s.px_h}px</div>
-      </div>
-    `;
-    list.appendChild(div);
+  await apiFetch(`/session/${state.sessionId}/snapshot`, { method: "POST" });
+  const { job_id } = await apiFetch(`/session/${state.sessionId}/clothing`, {
+    method: "POST",
+    body: JSON.stringify({ prompt: instruction }),
   });
-  refreshPrintButtons();
+
+  pollJob(job_id,
+    () => {
+      refreshPreview();
+      btn.disabled = false;
+      btn.innerHTML = "適用する";
+      toast("✅ 衣装を変更しました");
+    },
+    err => {
+      btn.disabled = false;
+      btn.innerHTML = "適用する";
+      toast("❌ " + err);
+    }
+  );
 }
 
-function refreshPrintButtons() {
-  const wrap = document.getElementById("printBtns");
-  wrap.innerHTML = "";
-  // A3ノビ: 四つ切り + キャビネ + mini×3
-  const hasYo = outputTypes.yotsugiri > 0;
-  const hasCab = outputTypes.cabinet > 0;
-  const hasMini = outputTypes.askanet_mini > 0;
-
-  if (hasYo && hasCab && hasMini) {
-    const btn = document.createElement("button");
-    btn.className = "btn btn-secondary btn-full";
-    btn.textContent = "🖨 A3ノビで一括印刷（四つ切り＋キャビネ＋mini×3）";
-    btn.onclick = () => printA3Nobi();
-    wrap.appendChild(btn);
-  }
-  if (hasCab && !hasYo) {
-    const btn = document.createElement("button");
-    btn.className = "btn btn-secondary btn-full";
-    btn.textContent = "🖨 A5で印刷（キャビネ）";
-    btn.onclick = () => printA5("cabinet");
-    wrap.appendChild(btn);
-  }
-  if (hasMini && !hasYo) {
-    const btn = document.createElement("button");
-    btn.className = "btn btn-secondary btn-full";
-    btn.textContent = "🖨 A5で印刷（mini×6）";
-    btn.onclick = () => printA5("mini");
-    wrap.appendChild(btn);
-  }
-}
-
-async function downloadAll() {
-  if (!sessionId) return;
-  const enabled = allSizes.filter(s => {
-    if (s.id === "yotsugiri" && !outputTypes.yotsugiri) return false;
-    if (s.id === "cabinet" && !outputTypes.cabinet) return false;
-    if (s.id === "askanet_mini" && !outputTypes.askanet_mini) return false;
-    return true;
+// ── STEP 4: Background color & swatch ────────────────
+function initBgSwatches() {
+  qsa(".bg-swatch[data-color]").forEach(sw => {
+    sw.addEventListener("click", () => {
+      qsa(".bg-swatch").forEach(s => s.classList.remove("selected"));
+      sw.classList.add("selected");
+      state.bgColor = sw.dataset.color;
+    });
   });
-  for (const s of enabled) {
-    await downloadSize(s.id, s.id);
+
+  const customInput = qs("#swatch-custom-input");
+  if (customInput) {
+    customInput.addEventListener("input", () => {
+      state.bgColor = customInput.value;
+      qs(".bg-swatch-custom").style.background = customInput.value;
+      qsa(".bg-swatch").forEach(s => s.classList.remove("selected"));
+      qs(".bg-swatch-custom").classList.add("selected");
+    });
   }
 }
 
-async function downloadSelected() {
-  if (!sessionId) return;
-  await downloadSize(selectedSizeId, selectedSizeId);
+// ── STEP 5a: Photo output ─────────────────────────────
+function initSizeOptions() {
+  fetch("/sizes").then(r => r.json()).then(sizes => {
+    const container = qs("#size-options");
+    container.innerHTML = "";
+    sizes.forEach((s, i) => {
+      const div = document.createElement("div");
+      div.className = "size-option" + (i === 0 ? " selected" : "");
+      div.dataset.id = s.id;
+      div.innerHTML = `
+        <input type="radio" name="size" value="${s.id}" ${i === 0 ? "checked" : ""}>
+        <div class="size-option-info">
+          <div class="size-option-label">${s.label}</div>
+          <div class="size-option-px">${s.px_w}×${s.px_h}px（${s.width_mm}×${s.height_mm}mm / ${s.dpi}dpi）</div>
+        </div>`;
+      div.addEventListener("click", () => {
+        qsa(".size-option").forEach(o => o.classList.remove("selected"));
+        div.classList.add("selected");
+        div.querySelector("input").checked = true;
+        state.selectedSizeId = s.id;
+      });
+      container.appendChild(div);
+    });
+    if (sizes.length > 0) state.selectedSizeId = sizes[0].id;
+  });
 }
 
-async function downloadSize(sizeId, filename) {
-  const resp = await fetch(`/session/${sessionId}/compose_photo`, {
+async function downloadPhoto() {
+  if (!state.selectedSizeId) { toast("サイズを選択してください"); return; }
+  const btn = qs("#btn-download-photo");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> 生成中…`;
+
+  const body = {
+    size_id: state.selectedSizeId,
+    bg_color: state.bgColor,
+    quality: 95,
+  };
+
+  const r = await fetch(`/session/${state.sessionId}/download_photo`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ size_id: sizeId, bg_color: selectedBgColor, filename })
+    body: JSON.stringify(body),
   });
-  if (!resp.ok) { showToast("出力エラー", "error"); return; }
-  const blob = await resp.blob();
+
+  if (!r.ok) {
+    const e = await r.json();
+    toast("❌ " + (e.error || "エラー"));
+    btn.disabled = false;
+    btn.innerHTML = "ダウンロード";
+    return;
+  }
+
+  const blob = await r.blob();
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
-  const date = new Date().toISOString().slice(0,10).replace(/-/g,"");
   a.href = url;
-  a.download = `${filename}_${date}.jpg`;
+  const cd = r.headers.get("Content-Disposition") || "";
+  a.download = cd.match(/filename\*?=["']?([^"';]+)/)?.[1] || "photo.jpg";
   a.click();
   URL.revokeObjectURL(url);
+
+  btn.disabled = false;
+  btn.innerHTML = "ダウンロード";
+  toast("✅ 保存しました");
 }
 
-async function printA3Nobi() {
-  if (!sessionId) return;
-  showToast("印刷データを生成中...", "");
-  const resp = await fetch(`/session/${sessionId}/print_layout/a3nobi`, {
+async function printA3nobi() {
+  const btn = qs("#btn-print-a3");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> 生成中…`;
+
+  const r = await fetch(`/session/${state.sessionId}/print_a3nobi`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ bg_color: selectedBgColor })
+    body: JSON.stringify({ bg_color: state.bgColor }),
   });
-  if (!resp.ok) { showToast("生成エラー", "error"); return; }
-  const blob = await resp.blob();
+
+  if (!r.ok) {
+    const e = await r.json();
+    toast("❌ " + (e.error || "エラー"));
+    btn.disabled = false;
+    btn.innerHTML = "A3ノビ印刷";
+    return;
+  }
+
+  const blob = await r.blob();
   const url = URL.createObjectURL(blob);
-  openPrintWindow(url, "A3ノビ (329×483mm)", "329mm", "483mm");
+  const w = window.open("", "_blank");
+  w.document.write(`<html><head><title>印刷プレビュー</title>
+    <style>@page{size:329mm 483mm;margin:0}body{margin:0}img{width:100%;display:block}</style></head>
+    <body><img src="${url}" onload="setTimeout(()=>window.print(),400)"></body></html>`);
+
+  btn.disabled = false;
+  btn.innerHTML = "A3ノビ印刷";
 }
 
-async function printA5(sizeType) {
-  if (!sessionId) return;
-  showToast("印刷データを生成中...", "");
-  const resp = await fetch(`/session/${sessionId}/print_layout/a5`, {
+async function printA5(mode) {
+  const btn = mode === "cabinet" ? qs("#btn-print-a5-cab") : qs("#btn-print-a5-mini");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span>`;
+
+  const r = await fetch(`/session/${state.sessionId}/print_a5`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ bg_color: selectedBgColor, size_type: sizeType })
+    body: JSON.stringify({ bg_color: state.bgColor, mode }),
   });
-  if (!resp.ok) { showToast("生成エラー", "error"); return; }
-  const blob = await resp.blob();
+
+  if (!r.ok) {
+    const e = await r.json();
+    toast("❌ " + (e.error || "エラー"));
+    btn.disabled = false;
+    btn.innerHTML = mode === "cabinet" ? "A5キャビネ" : "A5 mini";
+    return;
+  }
+
+  const blob = await r.blob();
   const url = URL.createObjectURL(blob);
-  openPrintWindow(url, "A5 (148×210mm)", "148mm", "210mm");
+  const w = window.open("", "_blank");
+  w.document.write(`<html><head><title>印刷プレビュー</title>
+    <style>@page{size:148mm 210mm;margin:0}body{margin:0}img{width:100%;display:block}</style></head>
+    <body><img src="${url}" onload="setTimeout(()=>window.print(),400)"></body></html>`);
+
+  btn.disabled = false;
+  btn.innerHTML = mode === "cabinet" ? "A5キャビネ" : "A5 mini";
 }
 
-function openPrintWindow(imageUrl, paperLabel, paperW, paperH) {
-  const win = window.open("", "_blank");
-  win.document.write(`<!DOCTYPE html><html><head><title>印刷 — ${paperLabel}</title>
-<style>
-  @page { size: ${paperW} ${paperH}; margin: 0; }
-  body { margin: 0; padding: 0; display: flex; align-items: center; justify-content: center; }
-  img { width: ${paperW}; height: ${paperH}; display: block; }
-  @media print { body { -webkit-print-color-adjust: exact; } }
-</style></head><body>
-<img src="${imageUrl}" onload="window.print()">
-</body></html>`);
-  win.document.close();
-}
-
-// ── Output: video ─────────────────────────────────────
-function initBgSlots() {
-  const grid = document.getElementById("bgSlots");
-  grid.innerHTML = "";
-  for (let i = 0; i < 6; i++) {
-    const slot = document.createElement("div");
-    slot.className = "bg-slot";
-    slot.dataset.idx = i;
-    slot.innerHTML = `<span class="slot-num">BG ${i+1}</span><span>クリックして選択</span>`;
-    slot.onclick = () => pickBgSlot(i);
-    grid.appendChild(slot);
+// ── STEP 5b: Video output ─────────────────────────────
+function initVideoSettings() {
+  const durInput = qs("#video-duration");
+  const fadeInput = qs("#video-fade");
+  if (durInput) {
+    durInput.value = state.videoDuration;
+    durInput.addEventListener("change", () => state.videoDuration = parseFloat(durInput.value));
+  }
+  if (fadeInput) {
+    fadeInput.value = state.videoFade;
+    fadeInput.addEventListener("change", () => state.videoFade = parseFloat(fadeInput.value));
   }
 }
 
-function pickBgSlot(idx) {
-  const input = document.getElementById("bgFileInput");
-  input._targetIdx = idx;
-  input.removeAttribute("multiple");
-  input.click();
+function initBgUpload() {
+  const zone = qs("#bg-upload-zone");
+  const input = qs("#bg-file-input");
+  if (!zone || !input) return;
+
+  zone.addEventListener("click", () => input.click());
+  zone.addEventListener("dragover", e => { e.preventDefault(); zone.style.background = "var(--orange-faint)"; });
+  zone.addEventListener("dragleave", () => zone.style.background = "");
+  zone.addEventListener("drop", e => {
+    e.preventDefault();
+    zone.style.background = "";
+    uploadBgFiles([...e.dataTransfer.files]);
+  });
+  input.addEventListener("change", e => uploadBgFiles([...e.target.files]));
 }
 
-async function handleBgFiles(input) {
-  const idx = input._targetIdx !== undefined ? input._targetIdx : 0;
-  const files = Array.from(input.files).slice(0, 6 - idx);
-  for (let i = 0; i < files.length; i++) {
-    bgSlotFiles[idx + i] = files[i];
-    updateBgSlotPreview(idx + i, files[i]);
-  }
-  input.value = "";
+async function uploadBgFiles(files) {
+  if (files.length === 0) return;
+  const fd = new FormData();
+  files.forEach(f => fd.append("files", f));
+  const r = await fetch(`/session/${state.sessionId}/upload_bg`, { method: "POST", body: fd });
+  const data = await r.json();
+  state.bgFiles = [...state.bgFiles, ...data.names];
+  renderBgThumbs();
 }
 
-function updateBgSlotPreview(idx, file) {
-  const slots = document.querySelectorAll(".bg-slot");
-  const slot = slots[idx];
-  if (!slot) return;
-  slot.classList.add("filled");
-  const reader = new FileReader();
-  reader.onload = e => {
-    const img = slot.querySelector("img") || document.createElement("img");
-    img.src = e.target.result;
-    if (!slot.querySelector("img")) slot.appendChild(img);
-    slot.querySelector("span:last-child").textContent = file.name.slice(0, 12);
-  };
-  reader.readAsDataURL(file);
+function renderBgThumbs() {
+  const container = qs("#bg-thumbs");
+  container.innerHTML = "";
+  state.bgFiles.forEach((name, i) => {
+    const img = document.createElement("img");
+    img.className = "bg-thumb selected";
+    img.src = `/session/${state.sessionId}/preview?name=${name}`;
+    img.title = `背景 ${i + 1}`;
+    img.addEventListener("click", () => img.classList.toggle("selected"));
+    container.appendChild(img);
+  });
 }
 
 async function generateVideo() {
-  if (!sessionId) return;
-  const activeBgs = bgSlotFiles.filter(f => f !== null);
-  if (activeBgs.length === 0) { showToast("背景素材を最低1枚選択してください", "error"); return; }
+  const selected = qsa("#bg-thumbs .bg-thumb.selected");
+  if (selected.length === 0) { toast("背景素材を選択してください"); return; }
 
-  // Upload bg files to server
-  showJobStatus("videoJobStatus", "背景ファイルをアップロード中...", 10);
-  const fd = new FormData();
-  activeBgs.forEach(f => fd.append("files", f));
-  const up = await fetch(`/session/${sessionId}/upload_bg`, { method: "POST", body: fd }).then(x => x.json());
-  if (up.error) { showToast(up.error, "error"); clearJobStatus("videoJobStatus"); return; }
+  const selectedNames = [...selected].map(img => {
+    const src = img.src;
+    const m = src.match(/name=([^&]+)/);
+    return m ? m[1] : null;
+  }).filter(Boolean);
 
-  const durPerBg = parseFloat(document.getElementById("durPerBg").value);
-  const fadeDur = parseFloat(document.getElementById("fadeDur").value);
-  const r = await api(`/session/${sessionId}/compose_video`, "POST", { duration_per_bg: durPerBg, fade_duration: fadeDur });
-  if (r.error) { showToast(r.error, "error"); clearJobStatus("videoJobStatus"); return; }
+  const btn = qs("#btn-gen-video");
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> 動画を生成中…`;
+  qs("#video-progress").style.display = "block";
 
-  document.getElementById("genVideoBtn").disabled = true;
-  pollJob(r.job_id, "videoJobStatus", (jobData) => {
-    document.getElementById("genVideoBtn").disabled = false;
-    if (jobData.filename) {
-      const dlWrap = document.getElementById("videoDownloadLink");
-      const dlA = document.getElementById("videoDownloadA");
-      dlA.href = `/session/${sessionId}/download_video/${jobData.filename}`;
-      dlA.download = jobData.filename;
-      dlWrap.classList.remove("hidden");
-    }
-    showToast("動画が完成しました！", "success");
+  const { job_id } = await apiFetch(`/session/${state.sessionId}/compose_video`, {
+    method: "POST",
+    body: JSON.stringify({
+      bg_names: selectedNames,
+      duration_per_bg: state.videoDuration,
+      fade_duration: state.videoFade,
+      fps: 24,
+    }),
+  });
+
+  pollJob(job_id,
+    result => {
+      btn.disabled = false;
+      btn.innerHTML = "動画を生成する";
+      qs("#video-progress").style.display = "none";
+      if (result && result.filename) {
+        qs("#btn-download-video").style.display = "inline-flex";
+        qs("#btn-download-video").dataset.filename = result.filename;
+        toast("✅ 動画が完成しました");
+      }
+    },
+    err => {
+      btn.disabled = false;
+      btn.innerHTML = "動画を生成する";
+      qs("#video-progress").style.display = "none";
+      toast("❌ " + err);
+    },
+    "#video-progress .progress-fill",
+    "#video-progress .progress-msg"
+  );
+}
+
+function downloadVideo() {
+  const btn = qs("#btn-download-video");
+  const fname = btn.dataset.filename;
+  if (!fname) return;
+  window.location = `/session/${state.sessionId}/download_video?filename=${encodeURIComponent(fname)}`;
+}
+
+// ── Before/After comparison slider ───────────────────
+function initCompareSlider() {
+  const wrap = qs("#compare-wrap");
+  const handle = qs("#compare-handle");
+  const before = qs("#compare-before");
+  let dragging = false;
+
+  handle.addEventListener("mousedown", () => dragging = true);
+  document.addEventListener("mouseup", () => dragging = false);
+  document.addEventListener("mousemove", e => {
+    if (!dragging) return;
+    const rect = wrap.getBoundingClientRect();
+    const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+    const pct = x / rect.width * 100;
+    handle.style.left = pct + "%";
+    before.style.clipPath = `inset(0 ${100 - pct}% 0 0)`;
   });
 }
 
-// ── Preview ───────────────────────────────────────────
-function refreshPreview() {
-  if (!sessionId) return;
-  const img = document.getElementById("previewImg");
-  img.src = `/session/${sessionId}/preview?t=${Date.now()}`;
-  img.classList.remove("hidden");
-  document.getElementById("previewPlaceholder").classList.add("hidden");
-}
-
-// ── Undo ──────────────────────────────────────────────
-function pushUndo() {
-  const img = document.getElementById("previewImg");
-  if (img.src && !img.classList.contains("hidden")) {
-    undoStack.push(img.src);
-    if (undoStack.length > 5) undoStack.shift();
-    updateUndoBtn();
+// ── Compare toggle ────────────────────────────────────
+async function toggleCompare(btnSel) {
+  const cw = qs("#compare-wrap");
+  if (cw.classList.contains("visible")) {
+    cw.classList.remove("visible");
+    qs("#preview-img").style.display = "block";
+    return;
   }
+  // Load before/after
+  qs("#compare-after").src = previewUrl("current.png") + "&t=" + Date.now();
+  qs("#compare-before").src = previewUrl("before.png") + "&t=" + Date.now();
+  qs("#preview-img").style.display = "none";
+  cw.classList.add("visible");
 }
 
-async function undoEdit() {
-  // Undo by refreshing from server (simplified: just refresh)
-  // In a full implementation, we'd store server-side snapshots
-  refreshPreview();
-  showToast("戻しました", "");
+// ── Start modal ───────────────────────────────────────
+function initStartModal() {
+  const modal = qs("#start-modal");
+  qs("#btn-start-confirm").addEventListener("click", () => {
+    state.outputChoices = {
+      yotsugiri: qs("#cb-yotsugiri").checked ? parseInt(qs("#qty-yotsugiri").value) || 1 : 0,
+      cabinet:   qs("#cb-cabinet").checked   ? parseInt(qs("#qty-cabinet").value)   || 1 : 0,
+      mini:      qs("#cb-mini").checked      ? parseInt(qs("#qty-mini").value)       || 3 : 0,
+      video:     qs("#cb-video").checked,
+    };
+    modal.classList.add("hidden");
+    qs("#step-5-video-tab").style.display = state.outputChoices.video ? "" : "none";
+  });
 }
 
-function updateUndoBtn() {
-  document.getElementById("undoBtn").disabled = undoStack.length === 0;
+// ── Settings modal ────────────────────────────────────
+function openSettings() {
+  qs("#settings-modal").classList.remove("hidden");
+  loadSettingsForm();
+  loadSizesTable();
+  loadPresetsTable();
+}
+function closeSettings() {
+  qs("#settings-modal").classList.add("hidden");
 }
 
-// ── Settings ──────────────────────────────────────────
-async function loadSettings() {
-  const r = await api("/settings");
-  if (r.error) return;
-  const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ""; };
-  set("s-apikey", r.gemini_api_key_masked || "");
-  set("s-nas-in", r.nas_input_path);
-  set("s-nas-out", r.nas_output_path);
-  set("s-nas-bg", r.nas_bg_assets_path);
-  const sd = document.getElementById("s-dur");
-  const sf = document.getElementById("s-fade");
-  const sfps = document.getElementById("s-fps");
-  if (sd) { sd.value = r.video_duration_per_bg || 45; updateRangeVal("s-dur","s-durVal","秒"); }
-  if (sf) { sf.value = r.video_fade_duration || 3; updateRangeVal("s-fade","s-fadeVal","秒"); }
-  if (sfps) sfps.value = r.video_fps || 24;
-  // Also apply to video tab defaults
-  const db = document.getElementById("durPerBg");
-  const fd = document.getElementById("fadeDur");
-  if (db) { db.value = r.video_duration_per_bg || 45; updateRangeVal("durPerBg","durPerBgVal","秒"); }
-  if (fd) { fd.value = r.video_fade_duration || 3; updateRangeVal("fadeDur","fadeDurVal","秒"); }
+async function loadSettingsForm() {
+  const cfg = await apiFetch("/settings");
+  qs("#cfg-gemini-key").value = cfg.gemini_api_key || "";
+  qs("#cfg-nas-out").value    = cfg.nas_output_path || "";
+  qs("#cfg-nas-in").value     = cfg.nas_input_path || "";
+  qs("#cfg-nas-bg").value     = cfg.nas_bg_assets_path || "";
+  qs("#cfg-vid-dur").value    = cfg.video_duration_per_bg ?? 45;
+  qs("#cfg-vid-fade").value   = cfg.video_fade_duration ?? 3;
 }
 
 async function saveSettings() {
-  const key = document.getElementById("s-apikey").value;
-  const body = {
-    nas_input_path: document.getElementById("s-nas-in").value,
-    nas_output_path: document.getElementById("s-nas-out").value,
-    nas_bg_assets_path: document.getElementById("s-nas-bg").value,
-    video_duration_per_bg: parseInt(document.getElementById("s-dur").value),
-    video_fade_duration: parseFloat(document.getElementById("s-fade").value),
-    video_fps: parseInt(document.getElementById("s-fps").value),
+  const cfg = {
+    gemini_api_key:      qs("#cfg-gemini-key").value.trim(),
+    nas_output_path:     qs("#cfg-nas-out").value.trim(),
+    nas_input_path:      qs("#cfg-nas-in").value.trim(),
+    nas_bg_assets_path:  qs("#cfg-nas-bg").value.trim(),
+    video_duration_per_bg: parseFloat(qs("#cfg-vid-dur").value),
+    video_fade_duration: parseFloat(qs("#cfg-vid-fade").value),
+    video_fps: 24,
+    default_bg_color: "#ffffff",
   };
-  if (key && !key.includes("*")) body.gemini_api_key = key;
-  await api("/settings", "POST", body);
-  showToast("設定を保存しました", "success");
-  closeSettings();
+  await apiFetch("/settings", { method: "POST", body: JSON.stringify(cfg) });
+  state.videoDuration = cfg.video_duration_per_bg;
+  state.videoFade     = cfg.video_fade_duration;
+  initVideoSettings();
+  toast("✅ 設定を保存しました");
 }
 
-function showSettings() {
-  loadSettings();
-  document.getElementById("settingsModal").classList.remove("hidden");
-  switchSettingsTab("general");
-}
-
-function closeSettings() {
-  document.getElementById("settingsModal").classList.add("hidden");
-}
-
-function switchSettingsTab(name) {
-  ["general","sizes","presets","video"].forEach(t => {
-    const el = document.getElementById(`stab-${t}`);
-    if (el) el.classList.toggle("hidden", t !== name);
-  });
-  document.querySelectorAll("#settingsModal .tab-btn").forEach((btn, i) => {
-    const names = ["general","sizes","presets","video"];
-    btn.classList.toggle("active", names[i] === name);
-  });
-  if (name === "sizes") renderSizesTable();
-  if (name === "presets") renderPresetLists();
-}
-
-// ── Sizes CRUD ────────────────────────────────────────
-async function loadSizes() {
-  allSizes = await api("/sizes");
-  if (!Array.isArray(allSizes)) allSizes = [];
-}
-
-function renderSizesTable() {
-  const body = document.getElementById("sizesTableBody");
-  body.innerHTML = "";
-  allSizes.forEach(s => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+async function loadSizesTable() {
+  const sizes = await apiFetch("/sizes");
+  const tbody = qs("#sizes-tbody");
+  tbody.innerHTML = sizes.map(s => `
+    <tr>
       <td>${s.label}</td>
-      <td>${s.width_mm}</td>
-      <td>${s.height_mm}</td>
+      <td>${s.width_mm}×${s.height_mm}mm</td>
       <td>${s.dpi}</td>
-      <td>${s.px_w}×${s.px_h}</td>
+      <td>${s.px_w}×${s.px_h}px</td>
+      <td>${s.filename || s.id}</td>
       <td>
-        <button class="btn btn-ghost btn-sm btn-icon-only" onclick="editSizeDialog('${s.id}')" title="編集">✏</button>
-        <button class="btn btn-danger btn-sm btn-icon-only" onclick="deleteSize('${s.id}')" title="削除">🗑</button>
-      </td>`;
-    body.appendChild(tr);
-  });
-}
-
-function addSizeDialog() {
-  showSizeDialog(null);
-}
-
-function editSizeDialog(id) {
-  const s = allSizes.find(x => x.id === id);
-  if (s) showSizeDialog(s);
-}
-
-function showSizeDialog(s) {
-  const isEdit = !!s;
-  const label = s ? s.label : "";
-  const wm = s ? s.width_mm : "";
-  const hm = s ? s.height_mm : "";
-  const dpi = s ? s.dpi : 350;
-
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay";
-  overlay.innerHTML = `
-  <div class="modal" style="max-width:400px;">
-    <div class="modal-header">
-      <div class="modal-title">${isEdit ? "サイズを編集" : "サイズを追加"}</div>
-    </div>
-    <div class="modal-body">
-      <div class="form-group"><label class="form-label">名称</label>
-        <input class="form-control" id="dlg-label" value="${label}"></div>
-      <div class="flex-row">
-        <div class="form-group" style="flex:1"><label class="form-label">幅 (mm)</label>
-          <input class="form-control" id="dlg-w" type="number" value="${wm}" min="10" max="1000"></div>
-        <div class="form-group" style="flex:1"><label class="form-label">高 (mm)</label>
-          <input class="form-control" id="dlg-h" type="number" value="${hm}" min="10" max="1000"></div>
-      </div>
-      <div class="form-group"><label class="form-label">DPI</label>
-        <select class="form-control" id="dlg-dpi">
-          <option value="96">96dpi（画面表示向け）</option>
-          <option value="150">150dpi</option>
-          <option value="300">300dpi</option>
-          <option value="350" ${dpi==350?'selected':''}>350dpi（印刷標準）</option>
-        </select>
-      </div>
-      <p class="text-muted" id="dlg-px">出力px: —</p>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
-      <button class="btn btn-primary" onclick="saveSizeDialog('${s ? s.id : ""}')">保存</button>
-    </div>
-  </div>`;
-  document.body.appendChild(overlay);
-
-  const updatePx = () => {
-    const w = parseFloat(document.getElementById("dlg-w").value) || 0;
-    const h = parseFloat(document.getElementById("dlg-h").value) || 0;
-    const d = parseInt(document.getElementById("dlg-dpi").value) || 350;
-    const pw = Math.round(w / 25.4 * d);
-    const ph = Math.round(h / 25.4 * d);
-    document.getElementById("dlg-px").textContent = `出力px: ${pw} × ${ph}`;
-  };
-  ["dlg-w","dlg-h","dlg-dpi"].forEach(id => document.getElementById(id).addEventListener("input", updatePx));
-  updatePx();
-}
-
-async function saveSizeDialog(existingId) {
-  const label = document.getElementById("dlg-label").value.trim();
-  const wm = parseFloat(document.getElementById("dlg-w").value);
-  const hm = parseFloat(document.getElementById("dlg-h").value);
-  const dpi = parseInt(document.getElementById("dlg-dpi").value);
-  if (!label || !wm || !hm) { showToast("全項目を入力してください", "error"); return; }
-
-  if (existingId) {
-    await api(`/sizes/${existingId}`, "PUT", { label, width_mm: wm, height_mm: hm, dpi });
-  } else {
-    await api("/sizes", "POST", { label, width_mm: wm, height_mm: hm, dpi });
-  }
-  document.querySelector(".modal-overlay:last-of-type").remove();
-  await loadSizes();
-  renderSizesTable();
-  showToast("サイズを保存しました", "success");
+        <button class="btn btn-sm btn-secondary" onclick="editSize('${s.id}')">編集</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteSize('${s.id}')">削除</button>
+      </td>
+    </tr>`).join("");
 }
 
 async function deleteSize(id) {
   if (!confirm("このサイズを削除しますか？")) return;
-  await api(`/sizes/${id}`, "DELETE");
-  await loadSizes();
-  renderSizesTable();
-  showToast("削除しました", "");
+  await apiFetch(`/sizes/${id}`, { method: "DELETE" });
+  loadSizesTable();
+  initSizeOptions();
+  toast("削除しました");
 }
 
-// ── Presets CRUD ──────────────────────────────────────
-async function loadPresets() {
-  allPresets = await api("/presets");
-  if (!allPresets || typeof allPresets !== "object") allPresets = { formal: [], casual: [] };
+function editSize(id) {
+  // Reuse add modal pre-filled
+  fetch("/sizes").then(r => r.json()).then(sizes => {
+    const s = sizes.find(x => x.id === id);
+    if (!s) return;
+    qs("#size-form-label").value    = s.label;
+    qs("#size-form-w").value        = s.width_mm;
+    qs("#size-form-h").value        = s.height_mm;
+    qs("#size-form-dpi").value      = s.dpi;
+    qs("#size-form-filename").value = s.filename || "";
+    qs("#size-form-modal").classList.remove("hidden");
+    qs("#btn-save-size").onclick = async () => {
+      const body = {
+        label:     qs("#size-form-label").value,
+        width_mm:  parseFloat(qs("#size-form-w").value),
+        height_mm: parseFloat(qs("#size-form-h").value),
+        dpi:       parseInt(qs("#size-form-dpi").value),
+        filename:  qs("#size-form-filename").value,
+      };
+      await apiFetch(`/sizes/${id}`, { method: "PUT", body: JSON.stringify(body) });
+      qs("#size-form-modal").classList.add("hidden");
+      loadSizesTable();
+      initSizeOptions();
+      toast("✅ サイズを更新しました");
+    };
+  });
+}
+
+function openAddSizeModal() {
+  qs("#size-form-label").value    = "";
+  qs("#size-form-w").value        = "";
+  qs("#size-form-h").value        = "";
+  qs("#size-form-dpi").value      = "350";
+  qs("#size-form-filename").value = "";
+  qs("#size-form-modal").classList.remove("hidden");
+  qs("#btn-save-size").onclick = async () => {
+    const body = {
+      label:     qs("#size-form-label").value,
+      width_mm:  parseFloat(qs("#size-form-w").value),
+      height_mm: parseFloat(qs("#size-form-h").value),
+      dpi:       parseInt(qs("#size-form-dpi").value),
+      filename:  qs("#size-form-filename").value,
+    };
+    await apiFetch("/sizes", { method: "POST", body: JSON.stringify(body) });
+    qs("#size-form-modal").classList.add("hidden");
+    loadSizesTable();
+    initSizeOptions();
+    toast("✅ サイズを追加しました");
+  };
+}
+
+async function loadPresetsTable() {
+  const presets = await apiFetch("/clothing_presets");
+  ["formal", "casual"].forEach(cat => {
+    const tbody = qs(`#presets-tbody-${cat}`);
+    tbody.innerHTML = (presets[cat] || []).map(p => `
+      <tr>
+        <td>${p.label}</td>
+        <td style="color:var(--gray-mid);font-size:11px">${p.prompt.substring(0, 40)}…</td>
+        <td>
+          <button class="btn btn-sm btn-danger" onclick="deletePreset('${cat}','${p.id}')">削除</button>
+        </td>
+      </tr>`).join("");
+  });
   renderPresetButtons();
 }
 
-function renderPresetButtons() {
-  ["formal","casual"].forEach(cat => {
-    const grid = document.getElementById(`${cat}PresetGrid`);
+async function deletePreset(cat, pid) {
+  await apiFetch(`/clothing_presets/${cat}/${pid}`, { method: "DELETE" });
+  loadPresetsTable();
+  toast("削除しました");
+}
+
+async function renderPresetButtons() {
+  const presets = await apiFetch("/clothing_presets");
+  ["formal", "casual"].forEach(cat => {
+    const grid = qs(`#preset-grid-${cat}`);
     if (!grid) return;
-    grid.innerHTML = "";
-    (allPresets[cat] || []).forEach(p => {
-      const btn = document.createElement("button");
-      btn.className = "preset-btn";
-      btn.textContent = p.label;
-      btn.title = p.prompt;
-      btn.onclick = () => applyPreset(p.prompt);
-      grid.appendChild(btn);
-    });
+    grid.innerHTML = (presets[cat] || []).map(p => `
+      <button class="preset-btn" onclick="applyClothingPreset(${JSON.stringify(p.prompt)})">
+        <span class="preset-label">${cat === "formal" ? "フォーマル" : "カジュアル"}</span>
+        ${p.label}
+      </button>`).join("");
   });
 }
 
-function renderPresetLists() {
-  ["formal","casual"].forEach(cat => {
-    const list = document.getElementById(`${cat}PresetList`);
-    if (!list) return;
-    list.innerHTML = "";
-    (allPresets[cat] || []).forEach(p => {
-      const row = document.createElement("div");
-      row.style.cssText = "display:flex; align-items:center; gap:6px; margin-bottom:6px;";
-      row.innerHTML = `
-        <span style="flex:1; font-size:12px;">${p.label}</span>
-        <button class="btn btn-ghost btn-sm btn-icon-only" onclick="editPresetDialog('${cat}','${p.id}')">✏</button>
-        <button class="btn btn-danger btn-sm btn-icon-only" onclick="deletePreset('${cat}','${p.id}')">🗑</button>`;
-      list.appendChild(row);
-    });
+// ── Init ──────────────────────────────────────────────
+document.addEventListener("DOMContentLoaded", () => {
+  initUpload();
+  initEnhanceSliders();
+  initBgSwatches();
+  initSizeOptions();
+  initCompareSlider();
+  initBgUpload();
+  initVideoSettings();
+  initStartModal();
+
+  // Step tab clicks
+  qsa(".step-tab").forEach((tab, i) => {
+    tab.addEventListener("click", () => goToStep(i + 1));
   });
-}
 
-function addPresetDialog(category) {
-  showPresetDialog(category, null);
-}
-
-function editPresetDialog(category, id) {
-  const p = (allPresets[category] || []).find(x => x.id === id);
-  if (p) showPresetDialog(category, p);
-}
-
-function showPresetDialog(category, p) {
-  const catLabel = category === "formal" ? "フォーマル" : "カジュアル";
-  const overlay = document.createElement("div");
-  overlay.className = "modal-overlay";
-  overlay.innerHTML = `
-  <div class="modal" style="max-width:440px;">
-    <div class="modal-header">
-      <div class="modal-title">${catLabel}プリセット${p ? "を編集" : "を追加"}</div>
-    </div>
-    <div class="modal-body">
-      <div class="form-group"><label class="form-label">ボタン表示名</label>
-        <input class="form-control" id="dlg-p-label" value="${p ? p.label : ""}"></div>
-      <div class="form-group"><label class="form-label">Gemini への指示プロンプト</label>
-        <textarea class="form-control" id="dlg-p-prompt" rows="3">${p ? p.prompt : ""}</textarea></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">キャンセル</button>
-      <button class="btn btn-primary" onclick="savePresetDialog('${category}','${p ? p.id : ""}')">保存</button>
-    </div>
-  </div>`;
-  document.body.appendChild(overlay);
-}
-
-async function savePresetDialog(category, existingId) {
-  const label = document.getElementById("dlg-p-label").value.trim();
-  const prompt = document.getElementById("dlg-p-prompt").value.trim();
-  if (!label || !prompt) { showToast("全項目を入力してください", "error"); return; }
-
-  if (existingId) {
-    await api(`/presets/${category}/${existingId}`, "PUT", { label, prompt });
-  } else {
-    await api(`/presets/${category}`, "POST", { label, prompt });
-  }
-  document.querySelector(".modal-overlay:last-of-type").remove();
-  await loadPresets();
-  renderPresetButtons();
-  renderPresetLists();
-  showToast("プリセットを保存しました", "success");
-}
-
-async function deletePreset(category, id) {
-  if (!confirm("このプリセットを削除しますか？")) return;
-  await api(`/presets/${category}/${id}`, "DELETE");
-  await loadPresets();
-  renderPresetButtons();
-  renderPresetLists();
-  showToast("削除しました", "");
-}
-
-// ── Output tabs ───────────────────────────────────────
-function switchOutputTab(name) {
-  ["photo","video"].forEach(t => {
-    const el = document.getElementById(`tab-${t}`);
-    if (el) el.classList.toggle("active", t === name);
-  });
-  document.querySelectorAll("#panel-5 .tab-btn").forEach((btn, i) => {
-    btn.classList.toggle("active", i === (name === "photo" ? 0 : 1));
-  });
-}
-
-// ── Job polling ───────────────────────────────────────
-function pollJob(jobId, statusElId, onDone) {
-  if (pollTimers[jobId]) clearInterval(pollTimers[jobId]);
-  showJobStatus(statusElId, "処理中...", 5);
-
-  pollTimers[jobId] = setInterval(async () => {
-    const data = await api(`/job/${jobId}`);
-    if (data.status === "running") {
-      showJobStatus(statusElId, data.message || "処理中...", data.progress || 0);
-    } else if (data.status === "done") {
-      clearInterval(pollTimers[jobId]);
-      delete pollTimers[jobId];
-      clearJobStatus(statusElId);
-      if (onDone) onDone(data);
-    } else if (data.status === "error") {
-      clearInterval(pollTimers[jobId]);
-      delete pollTimers[jobId];
-      clearJobStatus(statusElId);
-      showToast(`エラー: ${data.error}`, "error");
-    }
-  }, 2000);
-}
-
-function showJobStatus(elId, msg, progress) {
-  const el = document.getElementById(elId);
-  if (!el) return;
-  el.innerHTML = `
-    <div class="progress-wrap">
-      <div class="progress-msg">${msg}</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:${progress||0}%"></div></div>
-    </div>`;
-}
-
-function clearJobStatus(elId) {
-  const el = document.getElementById(elId);
-  if (el) el.innerHTML = "";
-}
-
-// ── Toast ─────────────────────────────────────────────
-let toastTimer = null;
-function showToast(msg, type) {
-  const el = document.getElementById("toast");
-  el.textContent = msg;
-  el.className = "show" + (type ? ` ${type}` : "");
-  if (toastTimer) clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.className = ""; }, 3500);
-}
-
-// ── API helper ────────────────────────────────────────
-async function api(url, method = "GET", body = null) {
-  const opts = { method, headers: {} };
-  if (body) {
-    opts.headers["Content-Type"] = "application/json";
-    opts.body = JSON.stringify(body);
-  }
-  try {
-    const r = await fetch(url, opts);
-    return await r.json();
-  } catch (e) {
-    return { error: e.message };
-  }
-}
+  // Start modal auto-open
+  setTimeout(() => qs("#start-modal").classList.remove("hidden"), 300);
+});

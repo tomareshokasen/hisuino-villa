@@ -1,5 +1,5 @@
 [
-  {"id": "yotsugiri",   "label": "四つ切り",           "width_mm": 254, "height_mm": 305, "dpi": 350},
-  {"id": "cabinet",     "label": "キャビネ",            "width_mm": 130, "height_mm": 178, "dpi": 350},
-  {"id": "askanet_mini","label": "アスカネット mini",   "width_mm": 48,  "height_mm": 68,  "dpi": 350}
+  {"id": "yotsugiri",    "label": "四つ切り",         "width_mm": 254, "height_mm": 305, "dpi": 350, "filename": "yotsugiri"},
+  {"id": "cabinet",      "label": "キャビネ",          "width_mm": 130, "height_mm": 178, "dpi": 350, "filename": "cabinet"},
+  {"id": "askanet_mini", "label": "アスカネット mini", "width_mm": 48,  "height_mm": 68,  "dpi": 350, "filename": "mini"}
 ]

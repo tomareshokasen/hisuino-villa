@@ -1,41 +1,44 @@
 @echo off
-chcp 65001 > nul
-echo ==========================================
+chcp 65001 >/dev/null
+title ひすい野ヴィラ 遺影ツール セットアップ
+echo.
 echo  ひすい野ヴィラ 遺影写真作成ツール
-echo  初回セットアップ
-echo ==========================================
+echo  ─────────────────────────────────
+echo  初回セットアップを開始します
 echo.
 
 cd /d "%~dp0"
 
 :: Python の確認
-python --version > nul 2>&1
-if errorlevel 1 (
-  echo [エラー] Pythonがインストールされていません。
-  echo https://www.python.org/downloads/ からインストールしてください。
-  pause
-  exit /b 1
+python --version >/dev/null 2>&1
+if %errorlevel% neq 0 (
+    echo [エラー] Python が見つかりません。
+    echo Python 3.10 以上をインストールしてください。
+    echo https://www.python.org/downloads/
+    pause
+    exit /b 1
 )
 
-echo Pythonが確認できました。
-echo.
-
-:: 仮想環境の作成
-if not exist ".venv" (
-  echo 仮想環境を作成中...
-  python -m venv .venv
+echo  Python が見つかりました。仮想環境を作成します...
+python -m venv .venv
+if %errorlevel% neq 0 (
+    echo [エラー] 仮想環境の作成に失敗しました。
+    pause
+    exit /b 1
 )
 
-:: パッケージのインストール
-echo パッケージをインストール中（数分かかる場合があります）...
+echo  パッケージをインストールします（数分かかります）...
 call .venv\Scripts\activate.bat
-pip install --upgrade pip --quiet
-pip install -r requirements.txt --quiet
+pip install --upgrade pip -q
+pip install -r requirements.txt
 
 echo.
-echo ==========================================
+echo  ─────────────────────────────────
 echo  セットアップが完了しました！
-echo  「起動.bat」をダブルクリックして起動してください。
-echo ==========================================
+echo.
+echo  次の手順：
+echo  1. config.json を開き Gemini API キーを設定
+echo  2. 「起動.bat」をダブルクリックして起動
+echo  ─────────────────────────────────
 echo.
 pause

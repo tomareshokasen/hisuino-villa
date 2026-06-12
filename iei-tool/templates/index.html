@@ -4,470 +4,555 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>遺影写真作成ツール｜ひすい野ヴィラ</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;500&family=Noto+Sans+JP:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════════════
-     HEADER
-════════════════════════════════════════════════════ -->
-<header class="app-header">
-  <div class="app-logo">
-    ひすい野ヴィラ
-    <span>遺影写真作成ツール</span>
+<div id="app">
+
+  <!-- ═══════════════════ HEADER ═══════════════════ -->
+  <div id="app-header">
+    <div class="app-logo">
+      ひすい野ヴィラ
+      <span>Memorial Photo Tool</span>
+    </div>
+
+    <div id="steps-bar">
+      <div class="step-tab active" data-step="1">
+        <span class="step-num">1</span> 写真取込み
+      </div>
+      <div class="step-tab" data-step="2">
+        <span class="step-num">2</span> 高画質化
+      </div>
+      <div class="step-tab" data-step="3">
+        <span class="step-num">3</span> 切り抜き・加工
+      </div>
+      <div class="step-tab" data-step="4">
+        <span class="step-num">4</span> 衣装変更
+      </div>
+      <div class="step-tab" data-step="5">
+        <span class="step-num">5</span> 出力・保存
+      </div>
+    </div>
+
+    <div id="header-right">
+      <button class="btn btn-secondary btn-sm" onclick="openSettings()">
+        ⚙ 設定
+      </button>
+    </div>
   </div>
 
-  <div class="step-tabs">
-    <button class="step-tab active" data-step="1" onclick="switchStep(1)">
-      <span class="step-num">STEP 1</span>
-      <span>写真取込み</span>
-    </button>
-    <button class="step-tab" data-step="2" onclick="switchStep(2)">
-      <span class="step-num">STEP 2</span>
-      <span>高画質化</span>
-    </button>
-    <button class="step-tab" data-step="3" onclick="switchStep(3)">
-      <span class="step-num">STEP 3</span>
-      <span>切り抜き・加工</span>
-    </button>
-    <button class="step-tab" data-step="4" onclick="switchStep(4)">
-      <span class="step-num">STEP 4</span>
-      <span>衣装変更</span>
-    </button>
-    <button class="step-tab" data-step="5" onclick="switchStep(5)">
-      <span class="step-num">STEP 5</span>
-      <span>出力・印刷</span>
-    </button>
-  </div>
+  <!-- ═══════════════════ MAIN ═══════════════════ -->
+  <div id="main-layout">
 
-  <div class="header-actions">
-    <button class="btn btn-ghost btn-sm" onclick="showSettings()">⚙ 設定</button>
-    <button class="btn btn-secondary btn-sm" onclick="newSession()">✦ 新しい作業</button>
-  </div>
-</header>
+    <!-- ──────── LEFT PANEL ──────── -->
+    <div id="left-panel">
 
-<!-- ══════════════════════════════════════════════════
-     MAIN LAYOUT
-════════════════════════════════════════════════════ -->
-<div class="main-layout">
-
-  <!-- ─── SIDEBAR ─────────────────────────────────── -->
-  <div class="sidebar">
-
-    <!-- STEP 1: 写真取込み -->
-    <div class="step-panel active" id="panel-1">
-      <div class="panel-header">
-        <div class="panel-label">Step 1</div>
-        <div class="panel-title">写真を取込む</div>
-      </div>
-      <div class="panel-body">
-        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <strong>写真をここにドロップ</strong>
-          <p>またはクリックして選択<br><span style="font-size:11px">JPG・PNG・TIFF・BMP 対応</span></p>
-          <input type="file" id="fileInput" accept="image/*" style="display:none">
-        </div>
-
-        <div id="personSelectSection" class="hidden">
-          <div class="section-heading">故人様を選択</div>
-          <p class="text-muted mt-8">写真に複数の人物が写っている場合、故人様をクリックして選択してください。</p>
-          <div class="flex-row mt-8">
-            <button class="btn btn-ai btn-sm" onclick="detectPersons()">
-              🔍 人物を自動検出
-            </button>
-            <button class="btn btn-ghost btn-sm" onclick="skipPersonSelect()">1人のみ→スキップ</button>
-          </div>
-          <div id="personsOverlayWrap" class="mt-8"></div>
-          <div id="personJobStatus"></div>
-        </div>
-
-        <div class="card" style="font-size:12px; color:var(--gray-mid); line-height:1.8;">
-          <strong style="color:var(--wood-dark); display:block; margin-bottom:4px;">きれいな遺影写真のコツ</strong>
-          顔がはっきり写っているもの<br>
-          正面または斜め向きが最適<br>
-          表情が自然で穏やかなもの<br>
-          できるだけ高解像度（スキャン300dpi以上）
-        </div>
-      </div>
-      <div class="panel-footer">
-        <button class="btn btn-primary btn-full" id="goStep2Btn" onclick="switchStep(2)" disabled>
-          次へ：高画質化 →
-        </button>
-      </div>
-    </div>
-
-    <!-- STEP 2: 高画質化 -->
-    <div class="step-panel" id="panel-2">
-      <div class="panel-header">
-        <div class="panel-label">Step 2</div>
-        <div class="panel-title">高画質化・補正</div>
-      </div>
-      <div class="panel-body">
-        <div class="section-heading">手動補正</div>
-        <div class="form-group">
-          <label class="form-label">明るさ</label>
-          <div class="range-row">
-            <input type="range" id="brightness" min="0.5" max="1.8" step="0.05" value="1.0" oninput="updateRangeVal('brightness','brightnessVal')">
-            <span class="range-val" id="brightnessVal">1.0</span>
+      <!-- STEP 1 -->
+      <div class="step-panel active" id="step-1">
+        <div class="panel-section">
+          <p class="section-title">STEP 1 — 写真を取り込む</p>
+          <div id="upload-zone">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <p class="upload-title">写真をここにドロップ</p>
+            <p style="color:var(--gray-mid);font-size:12px;margin:8px 0">または</p>
+            <button class="btn btn-primary" onclick="document.getElementById('file-input').click()">ファイルを選択</button>
+            <p class="upload-hint">JPG・PNG・TIFF・BMP 対応</p>
+            <input type="file" id="file-input" accept="image/*" hidden>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">コントラスト</label>
-          <div class="range-row">
-            <input type="range" id="contrast" min="0.5" max="2.0" step="0.05" value="1.05" oninput="updateRangeVal('contrast','contrastVal')">
-            <span class="range-val" id="contrastVal">1.05</span>
+        <div class="panel-section">
+          <p class="section-title">複数人が写っている場合</p>
+          <p style="font-size:11px;color:var(--gray-mid);margin-bottom:10px">
+            写真を取り込んだ後、人物を自動検出して遺影にする方を選択できます。
+          </p>
+          <button id="btn-detect-persons" class="btn btn-secondary" style="display:none;width:100%" onclick="detectPersons()">
+            👥 人物を検出して選択する
+          </button>
+        </div>
+        <div class="panel-section" style="margin-top:auto">
+          <button class="btn btn-primary btn-lg" onclick="goToStep(2)" style="margin-top:8px">
+            次へ：高画質化 →
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step-panel" id="step-2">
+        <div class="panel-section">
+          <p class="section-title">STEP 2 — 明るさ・補正</p>
+
+          <div class="slider-row">
+            <label>明るさ <span id="val-brightness">1.0</span></label>
+            <input type="range" id="slider-brightness" min="0.5" max="1.8" step="0.05" value="1.0">
+          </div>
+          <div class="slider-row">
+            <label>コントラスト <span id="val-contrast">1.05</span></label>
+            <input type="range" id="slider-contrast" min="0.5" max="2.0" step="0.05" value="1.05">
+          </div>
+          <div class="slider-row">
+            <label>シャープネス <span id="val-sharpness">1.5</span></label>
+            <input type="range" id="slider-sharpness" min="0.5" max="3.0" step="0.1" value="1.5">
+          </div>
+
+          <button id="btn-enhance" class="btn btn-secondary" style="width:100%;margin-top:6px" onclick="applyEnhance()">
+            補正を適用
+          </button>
+        </div>
+
+        <div class="panel-section">
+          <p class="section-title">AI 高画質化（Gemini）</p>
+          <p style="font-size:11px;color:var(--gray-mid);margin-bottom:10px">
+            ノイズを除去し、色調・シャープさをAIが自動補正します。
+          </p>
+          <button id="btn-gemini-enhance" class="btn btn-primary" style="width:100%" onclick="geminiEnhance()">
+            ✨ Gemini AI 高画質化
+          </button>
+          <div id="enhance-progress" class="progress-wrap" style="display:none;margin-top:10px">
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+            <p class="progress-msg">処理中…</p>
           </div>
         </div>
-        <div class="form-group">
-          <label class="form-label">シャープネス</label>
-          <div class="range-row">
-            <input type="range" id="sharpness" min="0.5" max="3.0" step="0.1" value="1.5" oninput="updateRangeVal('sharpness','sharpnessVal')">
-            <span class="range-val" id="sharpnessVal">1.5</span>
+
+        <div class="panel-section">
+          <button class="btn btn-secondary btn-sm" onclick="toggleCompare()">⇆ 加工前後を比較</button>
+        </div>
+
+        <div class="panel-section" style="margin-top:auto">
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="goToStep(1)">← 戻る</button>
+            <button class="btn btn-primary" onclick="goToStep(3)" style="flex:1">次へ：切り抜き →</button>
           </div>
         </div>
-        <button class="btn btn-secondary btn-full" onclick="applyEnhance()">補正を適用</button>
-
-        <div class="section-heading">AI高画質化</div>
-        <p class="text-muted">Gemini AIが自動でノイズ除去・解像度向上を行います。</p>
-        <div class="text-warn">⚠ インターネット接続が必要です。処理に5〜15秒かかります。</div>
-        <button class="btn btn-ai btn-full" onclick="geminiEnhance()">
-          ✦ AIで高画質化する
-        </button>
-        <div id="enhanceJobStatus"></div>
       </div>
-      <div class="panel-footer">
-        <button class="btn btn-ghost" onclick="switchStep(1)">← 戻る</button>
-        <button class="btn btn-primary" style="flex:1" onclick="switchStep(3)">次へ：切り抜き →</button>
-      </div>
-    </div>
 
-    <!-- STEP 3: 切り抜き・加工 -->
-    <div class="step-panel" id="panel-3">
-      <div class="panel-header">
-        <div class="panel-label">Step 3</div>
-        <div class="panel-title">切り抜き・背景除去</div>
-      </div>
-      <div class="panel-body">
-        <div class="section-heading">背景除去</div>
-        <p class="text-muted">AIが自動的に人物だけを切り抜きます。初回は1〜2分かかります。</p>
-        <button class="btn btn-primary btn-full" id="removeBgBtn" onclick="removeBg()">
-          ✂ 背景を自動除去する
-        </button>
-        <div id="bgRemoveJobStatus"></div>
-
-        <div class="section-heading" style="margin-top:4px">AI加工（Gemini）</div>
-        <div class="text-warn">以下の加工は切り抜き前の画像にも使えます。</div>
-
-        <button class="btn btn-secondary btn-full" onclick="removeProps()">
-          🗑 持ち物・小道具を除去
-        </button>
-        <p class="text-muted" style="font-size:11px">ピースサイン・花束・帽子などを自動で消します</p>
-
-        <button class="btn btn-secondary btn-full" onclick="removeOthers()">
-          👥 他の人を除去・体を補完
-        </button>
-        <p class="text-muted" style="font-size:11px">重なっている他の人物を消し、隠れた体の部分を補完します</p>
-
-        <div id="aiEditJobStatus3"></div>
-      </div>
-      <div class="panel-footer">
-        <button class="btn btn-ghost" onclick="switchStep(2)">← 戻る</button>
-        <button class="btn btn-primary" style="flex:1" onclick="switchStep(4)">次へ：衣装変更 →</button>
-      </div>
-    </div>
-
-    <!-- STEP 4: 衣装変更 -->
-    <div class="step-panel" id="panel-4">
-      <div class="panel-header">
-        <div class="panel-label">Step 4</div>
-        <div class="panel-title">衣装変更</div>
-      </div>
-      <div class="panel-body">
-        <button class="btn btn-full" style="background:#1a1714; color:white; letter-spacing:0.1em;" onclick="necktieBtnClick()">
-          🎗 ネクタイを黒に変更
-        </button>
-
-        <div class="section-heading">フォーマル</div>
-        <div class="preset-grid" id="formalPresetGrid"></div>
-
-        <div class="section-heading">カジュアル</div>
-        <div class="preset-grid" id="casualPresetGrid"></div>
-
-        <div class="section-heading">自由入力</div>
-        <div class="form-group">
-          <textarea class="form-control" id="customClothingInput" rows="3"
-            placeholder="例：黒い礼服と白いシャツを着せてください"></textarea>
-        </div>
-        <button class="btn btn-ai btn-full" onclick="applyCustomClothing()">
-          ✦ AIで衣装を変更する
-        </button>
-        <div id="aiEditJobStatus4"></div>
-      </div>
-      <div class="panel-footer">
-        <button class="btn btn-ghost" onclick="switchStep(3)">← 戻る</button>
-        <button class="btn btn-primary" style="flex:1" onclick="switchStep(5)">次へ：出力 →</button>
-      </div>
-    </div>
-
-    <!-- STEP 5: 出力 -->
-    <div class="step-panel" id="panel-5">
-      <div class="panel-header">
-        <div class="panel-label">Step 5</div>
-        <div class="panel-title">出力・印刷</div>
-      </div>
-      <div class="panel-body" style="padding:0; gap:0;">
-        <div class="tab-bar">
-          <button class="tab-btn active" onclick="switchOutputTab('photo')">📷 写真遺影</button>
-          <button class="tab-btn" onclick="switchOutputTab('video')">🎬 動画遺影</button>
+      <!-- STEP 3 -->
+      <div class="step-panel" id="step-3">
+        <div class="panel-section">
+          <p class="section-title">STEP 3 — 背景を除去する</p>
+          <p style="font-size:11px;color:var(--gray-mid);margin-bottom:10px">
+            AIが自動で人物を切り抜きます。初回は AI モデルの読み込みに数分かかります。
+          </p>
+          <button id="btn-remove-bg" class="btn btn-primary btn-lg" onclick="removeBg()">
+            ✂️ 背景を除去する
+          </button>
+          <div id="bg-remove-progress" class="progress-wrap" style="display:none;margin-top:10px">
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+            <p class="progress-msg">処理中…</p>
+          </div>
         </div>
 
-        <!-- 写真出力タブ -->
-        <div class="tab-content active" id="tab-photo" style="padding: 14px 20px;">
-          <div class="section-heading">背景色</div>
-          <div class="swatch-row">
-            <div class="swatch selected" style="background:#ffffff" data-color="#ffffff" onclick="selectSwatch(this)" title="白"></div>
-            <div class="swatch" style="background:#f0f0f0" data-color="#f0f0f0" onclick="selectSwatch(this)" title="ライトグレー"></div>
-            <div class="swatch" style="background:#faf7f3" data-color="#faf7f3" onclick="selectSwatch(this)" title="クリーム"></div>
-            <div class="swatch" style="background:#dce8f4" data-color="#dce8f4" onclick="selectSwatch(this)" title="空色"></div>
-            <div class="swatch" style="background:#e8e0f0" data-color="#e8e0f0" onclick="selectSwatch(this)" title="薄紫"></div>
-            <div class="swatch-custom-wrap">
-              <div class="swatch-custom" title="カスタムカラー">
-                <input type="color" id="customBgColor" value="#ffffff" onchange="applyCustomColor(this.value)">
+        <div class="panel-section">
+          <p class="section-title">持ち物・小道具を除去</p>
+          <p style="font-size:11px;color:var(--gray-mid);margin-bottom:10px">
+            花束・ピースサイン・飲み物など、顔と体以外の不要な物をAIが除去します。
+          </p>
+          <button class="btn btn-secondary" style="width:100%"
+            onclick="runGeminiEdit('remove_objects','[onclick]','🗑️ 持ち物・小道具を除去')">
+            🗑️ 持ち物・小道具を除去
+          </button>
+        </div>
+
+        <div class="panel-section">
+          <p class="section-title">他の人物を除去・体を補完</p>
+          <p style="font-size:11px;color:var(--gray-mid);margin-bottom:10px">
+            重なっている他の人物を除去し、隠れていた体の部分をAIが自然に補完します。
+          </p>
+          <button class="btn btn-secondary" style="width:100%"
+            id="btn-remove-others"
+            onclick="runGeminiEdit('remove_others','#btn-remove-others','👥 他の人物を除去・体を補完')">
+            👥 他の人物を除去・体を補完
+          </button>
+        </div>
+
+        <div class="panel-section">
+          <button class="btn btn-secondary btn-sm" onclick="toggleCompare()">⇆ 加工前後を比較</button>
+        </div>
+
+        <div class="panel-section" style="margin-top:auto">
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="goToStep(2)">← 戻る</button>
+            <button class="btn btn-primary" onclick="goToStep(4)" style="flex:1">次へ：衣装変更 →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 4 -->
+      <div class="step-panel" id="step-4">
+        <div class="panel-section">
+          <p class="section-title">STEP 4 — ネクタイ</p>
+          <button id="btn-necktie" class="btn btn-secondary" style="width:100%"
+            onclick="runGeminiEdit('necktie_black','#btn-necktie','👔 ネクタイを黒に変更')">
+            👔 ネクタイを黒に変更
+          </button>
+        </div>
+
+        <div class="panel-section">
+          <p class="section-title">フォーマル</p>
+          <div id="preset-grid-formal" class="preset-grid">
+            <!-- dynamically loaded -->
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <p class="section-title">カジュアル</p>
+          <div id="preset-grid-casual" class="preset-grid">
+            <!-- dynamically loaded -->
+          </div>
+        </div>
+
+        <div class="panel-section">
+          <p class="section-title">自由入力で変更</p>
+          <textarea id="custom-clothing-input"
+            class="form-input"
+            rows="2"
+            placeholder="例：白いブラウスを着せてください"></textarea>
+          <button id="btn-custom-clothing" class="btn btn-primary" style="width:100%;margin-top:8px"
+            onclick="applyCustomClothing()">
+            適用する
+          </button>
+        </div>
+
+        <div class="panel-section">
+          <button class="btn btn-secondary btn-sm" onclick="toggleCompare()">⇆ 加工前後を比較</button>
+        </div>
+
+        <div class="panel-section" style="margin-top:auto">
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="goToStep(3)">← 戻る</button>
+            <button class="btn btn-primary" onclick="goToStep(5)" style="flex:1">次へ：出力 →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 5 -->
+      <div class="step-panel" id="step-5">
+
+        <div class="output-tabs">
+          <div class="output-tab active" onclick="switchOutputTab('photo', this)">写真遺影</div>
+          <div id="step-5-video-tab" class="output-tab" onclick="switchOutputTab('video', this)">動画遺影</div>
+        </div>
+
+        <!-- Photo tab -->
+        <div id="out-tab-photo" class="output-tab-content active">
+
+          <div class="panel-section">
+            <p class="section-title">背景色</p>
+            <div class="bg-swatches">
+              <div class="bg-swatch selected" data-color="#ffffff" style="background:#ffffff;border:1px solid #ddd" title="白"></div>
+              <div class="bg-swatch" data-color="#f0f0f0" style="background:#f0f0f0" title="ライトグレー"></div>
+              <div class="bg-swatch" data-color="#faf7f3" style="background:#faf7f3" title="クリーム"></div>
+              <div class="bg-swatch" data-color="#dce8f4" style="background:#dce8f4" title="空色"></div>
+              <div class="bg-swatch" data-color="#e8e0f0" style="background:#e8e0f0" title="薄紫"></div>
+              <div class="bg-swatch bg-swatch-custom" style="background:#cccccc;border:1px dashed var(--gray-light)" title="カスタム">
+                <input type="color" id="swatch-custom-input" value="#cccccc">
               </div>
             </div>
           </div>
 
-          <div class="section-heading">出力サイズ</div>
-          <div id="sizeOptionsList" style="display:flex; flex-direction:column; gap:6px;"></div>
-
-          <div class="section-heading">ダウンロード</div>
-          <div style="display:flex; flex-direction:column; gap:6px;">
-            <button class="btn btn-primary btn-full" id="downloadAllBtn" onclick="downloadAll()">
-              ⬇ 全種類をダウンロード
-            </button>
-            <button class="btn btn-secondary btn-full" onclick="downloadSelected()">
-              ⬇ 選択したサイズのみ
-            </button>
-          </div>
-
-          <div class="section-heading">印刷</div>
-          <div id="printBtns" style="display:flex; flex-direction:column; gap:6px;"></div>
-        </div>
-
-        <!-- 動画出力タブ -->
-        <div class="tab-content" id="tab-video" style="padding: 14px 20px;">
-          <div class="section-heading">背景素材（1〜6枚）</div>
-          <p class="text-muted" style="font-size:11px">JPG・PNG を選択。番号順に切り替わります。</p>
-          <div class="bg-grid" id="bgSlots"></div>
-          <input type="file" id="bgFileInput" accept="image/*" multiple style="display:none" onchange="handleBgFiles(this)">
-
-          <div class="section-heading">動画設定</div>
-          <div class="form-group">
-            <label class="form-label">背景1枚あたりの秒数</label>
-            <div class="range-row">
-              <input type="range" id="durPerBg" min="10" max="120" step="5" value="45" oninput="updateRangeVal('durPerBg','durPerBgVal')">
-              <span class="range-val" id="durPerBgVal">45秒</span>
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label">フェード秒数（背景切替）</label>
-            <div class="range-row">
-              <input type="range" id="fadeDur" min="1" max="8" step="0.5" value="3" oninput="updateRangeVal('fadeDur','fadeDurVal')">
-              <span class="range-val" id="fadeDurVal">3秒</span>
+          <div class="panel-section">
+            <p class="section-title">出力サイズ</p>
+            <div id="size-options">
+              <!-- populated by JS -->
             </div>
           </div>
 
-          <button class="btn btn-primary btn-full" id="genVideoBtn" onclick="generateVideo()">
-            🎬 動画を生成する
-          </button>
-          <div id="videoJobStatus"></div>
-          <div id="videoDownloadLink" class="hidden">
-            <a id="videoDownloadA" class="btn btn-secondary btn-full" href="#" download>
-              ⬇ saidaniei 動画をダウンロード
-            </a>
+          <div class="panel-section">
+            <button id="btn-download-photo" class="btn btn-primary btn-lg" onclick="downloadPhoto()">
+              ダウンロード
+            </button>
+          </div>
+
+          <div class="panel-section">
+            <p class="section-title">ワンボタン印刷</p>
+            <p style="font-size:11px;color:var(--gray-mid);margin-bottom:10px">
+              レイアウトを生成してブラウザの印刷ダイアログを開きます。
+            </p>
+            <div class="btn-group" style="flex-direction:column;gap:8px">
+              <button id="btn-print-a3" class="btn btn-secondary" style="width:100%" onclick="printA3nobi()">
+                🖨 A3ノビ印刷（四つ切り＋キャビネ＋mini×3）
+              </button>
+              <button id="btn-print-a5-cab" class="btn btn-secondary" style="width:100%" onclick="printA5('cabinet')">
+                🖨 A5印刷（キャビネ）
+              </button>
+              <button id="btn-print-a5-mini" class="btn btn-secondary" style="width:100%" onclick="printA5('mini')">
+                🖨 A5印刷（mini×6）
+              </button>
+            </div>
           </div>
         </div>
+
+        <!-- Video tab -->
+        <div id="out-tab-video" class="output-tab-content">
+
+          <div class="panel-section">
+            <p class="section-title">背景素材（1〜6枚）</p>
+            <div id="bg-upload-zone" class="bg-upload-zone">
+              ＋ 画像または動画をドロップ・クリックして追加
+              <input type="file" id="bg-file-input" accept="image/*,video/*" multiple hidden>
+            </div>
+            <div id="bg-thumbs" class="bg-thumbs" style="margin-top:8px"></div>
+          </div>
+
+          <div class="panel-section">
+            <p class="section-title">動画設定</p>
+            <div class="slider-row">
+              <label>背景1枚あたりの秒数 <span></span></label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="number" id="video-duration" class="form-input"
+                  style="width:70px" min="5" max="300" value="45">
+                <span style="font-size:11px;color:var(--gray-mid)">秒（デフォルト45秒）</span>
+              </div>
+            </div>
+            <div class="slider-row" style="margin-top:10px">
+              <label>フェード時間</label>
+              <div style="display:flex;align-items:center;gap:8px">
+                <input type="number" id="video-fade" class="form-input"
+                  style="width:70px" min="0" max="10" step="0.5" value="3">
+                <span style="font-size:11px;color:var(--gray-mid)">秒（デフォルト3秒）</span>
+              </div>
+            </div>
+            <p style="font-size:10px;color:var(--gray-mid);margin-top:6px">
+              ※ 動画の終わりは最初の背景にシームレスにフェードします（ループ再生対応）
+            </p>
+          </div>
+
+          <div class="panel-section">
+            <button id="btn-gen-video" class="btn btn-primary btn-lg" onclick="generateVideo()">
+              動画を生成する
+            </button>
+            <div id="video-progress" class="progress-wrap" style="display:none;margin-top:10px">
+              <div class="progress-bar"><div class="progress-fill"></div></div>
+              <p class="progress-msg">処理中…</p>
+            </div>
+            <button id="btn-download-video" class="btn btn-secondary btn-lg"
+              style="display:none;margin-top:8px" onclick="downloadVideo()">
+              動画をダウンロード（saidaniei）
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-section" style="margin-top:auto">
+          <button class="btn btn-secondary" onclick="goToStep(4)">← 戻る</button>
+        </div>
       </div>
-      <div class="panel-footer">
-        <button class="btn btn-ghost" onclick="switchStep(4)">← 戻る</button>
+
+    </div><!-- /left-panel -->
+
+    <!-- ──────── RIGHT PANEL (preview) ──────── -->
+    <div id="right-panel">
+
+      <div id="preview-placeholder" style="display:flex;flex-direction:column;align-items:center">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        <p style="font-size:12px;margin-top:12px">写真を読み込むとプレビューが表示されます</p>
+      </div>
+
+      <img id="preview-img" style="display:none;max-width:100%;max-height:100%;object-fit:contain" alt="プレビュー">
+
+      <!-- Before/after comparison -->
+      <div id="compare-wrap">
+        <img id="compare-after" alt="加工後">
+        <img id="compare-before" alt="加工前">
+        <div id="compare-handle"></div>
+      </div>
+
+      <!-- Person selection overlay -->
+      <div id="person-overlay"></div>
+
+      <!-- Preview toolbar -->
+      <div id="preview-toolbar">
+        <button class="btn btn-icon btn-sm" title="元の写真を表示" onclick="refreshPreview('original.jpg')">↩</button>
+      </div>
+
+    </div><!-- /right-panel -->
+
+  </div><!-- /main-layout -->
+
+</div><!-- /app -->
+
+<!-- ═══════════════════ START MODAL ═══════════════════ -->
+<div id="start-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <p class="modal-title">作成する遺影の種類を選択</p>
+    <p class="modal-subtitle">必要な種類にチェックを入れて「開始する」を押してください</p>
+
+    <div class="output-choice">
+      <div class="output-choice-left">
+        <input type="checkbox" id="cb-yotsugiri" checked>
+        <div>
+          <div class="output-choice-name">四つ切り</div>
+          <div class="output-choice-size">254×305mm（祭壇メイン）</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" id="qty-yotsugiri" class="qty-input" value="1" min="1" max="10">
+        <span style="font-size:11px;color:var(--gray-mid)">枚</span>
       </div>
     </div>
 
-  </div><!-- /sidebar -->
-
-  <!-- ─── PREVIEW AREA ─────────────────────────────── -->
-  <div class="preview-area">
-    <div class="preview-toolbar">
-      <span id="previewInfo">画像未選択</span>
-      <span style="flex:1"></span>
-      <button class="btn btn-ghost btn-sm" onclick="refreshPreview()" title="プレビュー更新">↻ 更新</button>
-      <button class="btn btn-ghost btn-sm" id="undoBtn" onclick="undoEdit()" disabled>↩ 元に戻す</button>
-    </div>
-    <div class="preview-canvas-wrap" id="previewWrap">
-      <div class="preview-placeholder" id="previewPlaceholder">
-        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
-        <p>写真をアップロードすると<br>ここにプレビューが表示されます</p>
+    <div class="output-choice">
+      <div class="output-choice-left">
+        <input type="checkbox" id="cb-cabinet" checked>
+        <div>
+          <div class="output-choice-name">キャビネ</div>
+          <div class="output-choice-size">130×178mm（配布・返礼）</div>
+        </div>
       </div>
-      <img id="previewImg" class="hidden" alt="プレビュー" src="">
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" id="qty-cabinet" class="qty-input" value="1" min="1" max="10">
+        <span style="font-size:11px;color:var(--gray-mid)">枚</span>
+      </div>
     </div>
-  </div>
 
-</div><!-- /main-layout -->
-
-<!-- ══════════════════════════════════════════════════
-     STARTUP MODAL
-════════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="startupModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">作業開始</div>
+    <div class="output-choice">
+      <div class="output-choice-left">
+        <input type="checkbox" id="cb-mini" checked>
+        <div>
+          <div class="output-choice-name">アスカネット mini</div>
+          <div class="output-choice-size">48×68mm（デジタルミニフレーム）</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <input type="number" id="qty-mini" class="qty-input" value="3" min="1" max="10">
+        <span style="font-size:11px;color:var(--gray-mid)">枚</span>
+      </div>
     </div>
-    <div class="modal-body">
-      <p style="font-size:13px; color:var(--gray-mid)">今回作成する遺影の種類を選択してください。</p>
-      <div class="output-type-grid">
-        <div class="output-type-card selected" data-type="yotsugiri" onclick="toggleOutputType(this)">
-          <div class="ot-icon">🖼</div>
-          <div class="ot-label">四つ切り</div>
-          <div class="ot-size">254×305mm</div>
-          <div class="qty-control">
-            <button class="qty-btn" onclick="changeQty(event,'yotsugiri',-1)">−</button>
-            <span class="qty-val" id="qty-yotsugiri">1</span>
-            <button class="qty-btn" onclick="changeQty(event,'yotsugiri',1)">＋</button>
-          </div>
-        </div>
-        <div class="output-type-card selected" data-type="cabinet" onclick="toggleOutputType(this)">
-          <div class="ot-icon">🖼</div>
-          <div class="ot-label">キャビネ</div>
-          <div class="ot-size">130×178mm</div>
-          <div class="qty-control">
-            <button class="qty-btn" onclick="changeQty(event,'cabinet',-1)">−</button>
-            <span class="qty-val" id="qty-cabinet">1</span>
-            <button class="qty-btn" onclick="changeQty(event,'cabinet',1)">＋</button>
-          </div>
-        </div>
-        <div class="output-type-card selected" data-type="askanet_mini" onclick="toggleOutputType(this)">
-          <div class="ot-icon">🪟</div>
-          <div class="ot-label">アスカネット mini</div>
-          <div class="ot-size">48×68mm（画面）</div>
-          <div class="qty-control">
-            <button class="qty-btn" onclick="changeQty(event,'askanet_mini',-1)">−</button>
-            <span class="qty-val" id="qty-askanet_mini">3</span>
-            <button class="qty-btn" onclick="changeQty(event,'askanet_mini',1)">＋</button>
-          </div>
-        </div>
-        <div class="output-type-card selected" data-type="video" onclick="toggleOutputType(this)">
-          <div class="ot-icon">🎬</div>
-          <div class="ot-label">祭壇ご遺影（動画）</div>
-          <div class="ot-size">Full HD MP4 ループ</div>
+
+    <div class="output-choice" style="border-bottom:none">
+      <div class="output-choice-left">
+        <input type="checkbox" id="cb-video">
+        <div>
+          <div class="output-choice-name">祭壇ご遺影（モニター動画）</div>
+          <div class="output-choice-size">Full HD MP4 シームレスループ</div>
         </div>
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-primary" onclick="closeStartupModal()">作業を開始する</button>
+
+    <div class="modal-actions">
+      <button class="btn btn-primary btn-lg" id="btn-start-confirm">開始する</button>
     </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════
-     SETTINGS MODAL
-════════════════════════════════════════════════════ -->
-<div class="modal-overlay hidden" id="settingsModal">
-  <div class="modal settings-modal" style="max-width:680px;">
-    <div class="modal-header">
-      <div class="modal-title">⚙ 設定</div>
-      <button class="btn btn-ghost btn-icon-only" onclick="closeSettings()">✕</button>
+<!-- ═══════════════════ SETTINGS MODAL ═══════════════════ -->
+<div id="settings-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:640px;max-width:96vw">
+    <p class="modal-title">設定</p>
+
+    <!-- API & NAS Paths -->
+    <div style="margin-bottom:24px">
+      <p class="section-title" style="margin-bottom:12px">API・パス設定</p>
+      <div class="form-group">
+        <label class="form-label">Gemini API キー</label>
+        <input type="password" id="cfg-gemini-key" class="form-input" placeholder="AIza...">
+      </div>
+      <div class="form-group">
+        <label class="form-label">NAS 出力先フォルダ</label>
+        <input type="text" id="cfg-nas-out" class="form-input" placeholder="Z:\葬儀写真\遺影完成">
+      </div>
+      <div class="form-group">
+        <label class="form-label">NAS 原本フォルダ</label>
+        <input type="text" id="cfg-nas-in" class="form-input" placeholder="Z:\葬儀写真\原本">
+      </div>
+      <div class="form-group">
+        <label class="form-label">NAS 背景素材フォルダ</label>
+        <input type="text" id="cfg-nas-bg" class="form-input" placeholder="Z:\葬儀写真\背景素材">
+      </div>
+      <div style="display:flex;gap:12px">
+        <div class="form-group" style="flex:1">
+          <label class="form-label">動画：背景1枚あたりの秒数（デフォルト）</label>
+          <input type="number" id="cfg-vid-dur" class="form-input" min="5" max="300" value="45">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label class="form-label">動画：フェード秒数（デフォルト）</label>
+          <input type="number" id="cfg-vid-fade" class="form-input" min="0" max="10" step="0.5" value="3">
+        </div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">保存</button>
     </div>
-    <div class="modal-body">
-      <div class="tab-bar" style="margin: -20px -24px 16px; padding: 0 24px;">
-        <button class="tab-btn active" onclick="switchSettingsTab('general')">基本設定</button>
-        <button class="tab-btn" onclick="switchSettingsTab('sizes')">出力サイズ</button>
-        <button class="tab-btn" onclick="switchSettingsTab('presets')">衣装プリセット</button>
-        <button class="tab-btn" onclick="switchSettingsTab('video')">動画設定</button>
-      </div>
 
-      <!-- General -->
-      <div id="stab-general">
-        <div class="form-group">
-          <label class="form-label">Gemini APIキー</label>
-          <input type="password" class="form-control" id="s-apikey" placeholder="AIza...">
-        </div>
-        <div class="form-group">
-          <label class="form-label">NAS 原本フォルダ（入力）</label>
-          <input type="text" class="form-control" id="s-nas-in" placeholder="Z:\葬儀写真\原本">
-        </div>
-        <div class="form-group">
-          <label class="form-label">NAS 出力フォルダ</label>
-          <input type="text" class="form-control" id="s-nas-out" placeholder="Z:\葬儀写真\遺影完成">
-        </div>
-        <div class="form-group">
-          <label class="form-label">NAS 背景素材フォルダ</label>
-          <input type="text" class="form-control" id="s-nas-bg" placeholder="Z:\葬儀写真\背景素材">
-        </div>
+    <!-- Sizes management -->
+    <div style="margin-bottom:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <p class="section-title">出力サイズ管理</p>
+        <button class="btn btn-secondary btn-sm" onclick="openAddSizeModal()">＋ 追加</button>
       </div>
-
-      <!-- Sizes -->
-      <div id="stab-sizes" class="hidden">
-        <button class="btn btn-secondary btn-sm" onclick="addSizeDialog()" style="margin-bottom:12px;">＋ サイズを追加</button>
-        <table class="settings-table" id="sizesTable">
-          <thead><tr><th>名称</th><th>幅(mm)</th><th>高(mm)</th><th>DPI</th><th>出力px</th><th></th></tr></thead>
-          <tbody id="sizesTableBody"></tbody>
-        </table>
-      </div>
-
-      <!-- Presets -->
-      <div id="stab-presets" class="hidden">
-        <div class="flex-row" style="margin-bottom:12px; gap:16px; align-items:flex-start; flex-wrap:wrap;">
-          <div style="flex:1">
-            <div class="section-heading" style="margin-bottom:8px;">フォーマル</div>
-            <div id="formalPresetList"></div>
-            <button class="btn btn-secondary btn-sm mt-8" onclick="addPresetDialog('formal')">＋ 追加</button>
-          </div>
-          <div style="flex:1">
-            <div class="section-heading" style="margin-bottom:8px;">カジュアル</div>
-            <div id="casualPresetList"></div>
-            <button class="btn btn-secondary btn-sm mt-8" onclick="addPresetDialog('casual')">＋ 追加</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Video defaults -->
-      <div id="stab-video" class="hidden">
-        <div class="form-group">
-          <label class="form-label">背景1枚あたりのデフォルト秒数</label>
-          <div class="range-row">
-            <input type="range" id="s-dur" min="10" max="120" step="5" value="45" oninput="updateRangeVal('s-dur','s-durVal')">
-            <span class="range-val" id="s-durVal">45秒</span>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">デフォルトフェード秒数</label>
-          <div class="range-row">
-            <input type="range" id="s-fade" min="0.5" max="8" step="0.5" value="3" oninput="updateRangeVal('s-fade','s-fadeVal')">
-            <span class="range-val" id="s-fadeVal">3秒</span>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">フレームレート (fps)</label>
-          <select class="form-control" id="s-fps">
-            <option value="24" selected>24fps（標準）</option>
-            <option value="30">30fps</option>
-          </select>
-        </div>
-      </div>
-
+      <table class="settings-table">
+        <thead>
+          <tr>
+            <th>名称</th><th>サイズ</th><th>DPI</th><th>ピクセル</th><th>ファイル名</th><th></th>
+          </tr>
+        </thead>
+        <tbody id="sizes-tbody"></tbody>
+      </table>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost" onclick="closeSettings()">キャンセル</button>
-      <button class="btn btn-primary" onclick="saveSettings()">保存する</button>
+
+    <!-- Presets management -->
+    <div style="margin-bottom:24px">
+      <p class="section-title" style="margin-bottom:10px">衣装プリセット管理</p>
+      <p style="font-size:11px;color:var(--wood-mid);margin-bottom:6px">フォーマル</p>
+      <table class="settings-table" style="margin-bottom:12px">
+        <thead><tr><th>名称</th><th>プロンプト</th><th></th></tr></thead>
+        <tbody id="presets-tbody-formal"></tbody>
+      </table>
+      <p style="font-size:11px;color:var(--wood-mid);margin-bottom:6px">カジュアル</p>
+      <table class="settings-table">
+        <thead><tr><th>名称</th><th>プロンプト</th><th></th></tr></thead>
+        <tbody id="presets-tbody-casual"></tbody>
+      </table>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeSettings()">閉じる</button>
     </div>
   </div>
 </div>
 
-<!-- Toast -->
+<!-- ═══ Size add/edit modal ═══ -->
+<div id="size-form-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="width:380px">
+    <p class="modal-title">出力サイズの設定</p>
+    <div class="form-group">
+      <label class="form-label">名称</label>
+      <input type="text" id="size-form-label" class="form-input" placeholder="例：新アスカネット mini 2026">
+    </div>
+    <div style="display:flex;gap:10px">
+      <div class="form-group" style="flex:1">
+        <label class="form-label">幅 (mm)</label>
+        <input type="number" id="size-form-w" class="form-input" step="0.1">
+      </div>
+      <div class="form-group" style="flex:1">
+        <label class="form-label">高さ (mm)</label>
+        <input type="number" id="size-form-h" class="form-input" step="0.1">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">DPI（印刷350 / デジタル96〜150）</label>
+      <input type="number" id="size-form-dpi" class="form-input" value="350">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ファイル名（保存時の prefix）</label>
+      <input type="text" id="size-form-filename" class="form-input" placeholder="例：askanet_mini_2026">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="qs('#size-form-modal').classList.add('hidden')">キャンセル</button>
+      <button id="btn-save-size" class="btn btn-primary">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Toast ═══ -->
 <div id="toast"></div>
 
 <script src="/static/app.js"></script>
+<script>
+// Additional inline helpers that need DOM access
+function switchOutputTab(name, tabEl) {
+  document.querySelectorAll('.output-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.output-tab-content').forEach(c => c.classList.remove('active'));
+  tabEl.classList.add('active');
+  document.getElementById('out-tab-' + name).classList.add('active');
+}
+</script>
 </body>
 </html>

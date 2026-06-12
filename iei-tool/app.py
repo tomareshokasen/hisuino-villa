@@ -1,88 +1,77 @@
-"""ひすい野ヴィラ 遺影写真作成ツール — Flask backend."""
+"""
+遺影写真作成ツール - Flask application
+Run with: python app.py
+Access at: http://localhost:5001
+"""
 import io
 import json
 import os
 import shutil
 import threading
+import time
 import uuid
-import webbrowser
-from datetime import datetime
 from pathlib import Path
 
-from flask import Flask, jsonify, render_template, request, send_file, abort
+from flask import (Flask, Response, jsonify, render_template, request,
+                   send_file, stream_with_context)
 from PIL import Image
 
-# ── Paths ────────────────────────────────────────────────────────────────────
-BASE = Path(__file__).parent
-TMP = BASE / "tmp"
-TMP.mkdir(exist_ok=True)
-
-CONFIG_PATH = BASE / "config.json"
-SIZES_PATH = BASE / "sizes.json"
-PRESETS_PATH = BASE / "clothing_presets.json"
+BASE_DIR = Path(__file__).parent
+TMP_DIR = BASE_DIR / "tmp"
+TMP_DIR.mkdir(exist_ok=True)
 
 app = Flask(__name__)
-app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200MB
+app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200 MB
 
 
-# ── Config helpers ────────────────────────────────────────────────────────────
+# ---------------------------------------------------------------------------
+# Config helpers
+# ---------------------------------------------------------------------------
+
 def load_config() -> dict:
-    with open(CONFIG_PATH, encoding="utf-8") as f:
+    p = BASE_DIR / "config.json"
+    with open(p, encoding="utf-8") as f:
         return json.load(f)
 
 
-def save_config(data: dict) -> None:
-    with open(CONFIG_PATH, "w", encoding="utf-8") as f:
+def save_config(data: dict):
+    p = BASE_DIR / "config.json"
+    with open(p, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def load_sizes() -> list:
-    with open(SIZES_PATH, encoding="utf-8") as f:
+    p = BASE_DIR / "sizes.json"
+    with open(p, encoding="utf-8") as f:
         return json.load(f)
 
 
-def save_sizes(data: list) -> None:
-    with open(SIZES_PATH, "w", encoding="utf-8") as f:
+def save_sizes(data: list):
+    p = BASE_DIR / "sizes.json"
+    with open(p, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def load_presets() -> dict:
-    with open(PRESETS_PATH, encoding="utf-8") as f:
+    p = BASE_DIR / "clothing_presets.json"
+    with open(p, encoding="utf-8") as f:
         return json.load(f)
 
 
-def save_presets(data: dict) -> None:
-    with open(PRESETS_PATH, "w", encoding="utf-8") as f:
+def save_presets(data: dict):
+    p = BASE_DIR / "clothing_presets.json"
+    with open(p, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
 
-# ── Session helpers ───────────────────────────────────────────────────────────
-def session_dir(sid: str) -> Path:
-    d = TMP / sid
-    d.mkdir(parents=True, exist_ok=True)
-    return d
+def mm_to_px(mm: float, dpi: int) -> int:
+    return round(mm / 25.4 * dpi)
 
 
-def session_path(sid: str, name: str) -> Path:
-    return session_dir(sid) / name
+# ---------------------------------------------------------------------------
+# Job manager (for long-running tasks)
+# ---------------------------------------------------------------------------
 
-
-def load_session_img(sid: str, name: str = "current.png") -> Image.Image:
-    p = session_path(sid, name)
-    if not p.exists():
-        abort(404, f"セッション画像が見つかりません: {name}")
-    return Image.open(p)
-
-
-def save_session_img(sid: str, img: Image.Image, name: str = "current.png") -> None:
-    p = session_path(sid, name)
-    if img.mode in ("RGBA", "LA"):
-        img.save(p, format="PNG", optimize=True)
-    else:
-        img.convert("RGB").save(p, format="PNG", optimize=True)
-
-
-# ── Job manager (for long-running background tasks) ───────────────────────────
 class JobManager:
     def __init__(self):
         self._jobs: dict = {}
@@ -92,521 +81,89 @@ class JobManager:
         jid = str(uuid.uuid4())[:8]
         with self._lock:
             self._jobs[jid] = {"status": "running", "progress": 0,
-                                "message": "処理中...", "error": None}
+                                "message": "処理中…", "result": None, "error": None}
         return jid
 
-    def update(self, jid: str, **kw) -> None:
+    def update(self, jid: str, **kw):
         with self._lock:
             if jid in self._jobs:
                 self._jobs[jid].update(kw)
 
     def get(self, jid: str) -> dict:
         with self._lock:
-            return dict(self._jobs.get(jid, {"status": "not_found"}))
+            return dict(self._jobs.get(jid, {}))
 
-    def done(self, jid: str, message: str = "完了") -> None:
-        self.update(jid, status="done", progress=100, message=message)
+    def finish(self, jid: str, result=None):
+        self.update(jid, status="done", progress=100, message="完了", result=result)
 
-    def fail(self, jid: str, error: str) -> None:
-        self.update(jid, status="error", error=error)
+    def fail(self, jid: str, error: str):
+        self.update(jid, status="error", message=error, error=error)
 
 
 jobs = JobManager()
 
 
-def _configure_gemini():
-    cfg = load_config()
-    key = cfg.get("gemini_api_key", "")
-    if key:
-        from modules.gemini_edit import configure
-        configure(key)
-    return key
+# ---------------------------------------------------------------------------
+# Session helpers
+# ---------------------------------------------------------------------------
+
+def session_dir(sid: str) -> Path:
+    d = TMP_DIR / sid
+    d.mkdir(exist_ok=True)
+    return d
 
 
-# ── Utility ───────────────────────────────────────────────────────────────────
-def _img_response(img: Image.Image, fmt: str = "JPEG", quality: int = 85):
-    buf = io.BytesIO()
-    if fmt == "PNG":
-        img.save(buf, format="PNG", optimize=True)
+def load_session_img(sid: str, name: str = "current.png") -> Image.Image:
+    return Image.open(session_dir(sid) / name)
+
+
+def save_session_img(sid: str, img: Image.Image, name: str = "current.png"):
+    path = session_dir(sid) / name
+    if img.mode == "RGBA":
+        img.save(path, format="PNG")
     else:
-        img.convert("RGB").save(buf, format="JPEG", quality=quality, optimize=True)
-    buf.seek(0)
-    mime = "image/png" if fmt == "PNG" else "image/jpeg"
-    return send_file(buf, mimetype=mime)
+        img.convert("RGB").save(path, format="JPEG", quality=92)
 
 
-def _preview(img: Image.Image, max_px: int = 1200) -> Image.Image:
-    from modules.enhance import preview_resize
-    return preview_resize(img, max_px)
+def preview_bytes(sid: str, name: str = "current.png") -> bytes:
+    from modules.enhance import preview_resize, to_jpeg_bytes, to_png_bytes
+    img = load_session_img(sid, name)
+    img = preview_resize(img, 1200)
+    if img.mode == "RGBA":
+        return to_png_bytes(img)
+    return to_jpeg_bytes(img)
 
 
-def _px(mm: float, dpi: int = 350) -> int:
-    from modules.compose import mm_to_px
-    return mm_to_px(mm, dpi)
+# ---------------------------------------------------------------------------
+# Routes: UI
+# ---------------------------------------------------------------------------
 
-
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Main page
-# ═════════════════════════════════════════════════════════════════════════════
 @app.route("/")
 def index():
     return render_template("index.html")
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Session / Upload
-# ═════════════════════════════════════════════════════════════════════════════
-@app.route("/session/new", methods=["POST"])
-def new_session():
-    sid = str(uuid.uuid4())[:12]
-    session_dir(sid)
-    return jsonify({"session_id": sid})
+# ---------------------------------------------------------------------------
+# Routes: Config / Sizes / Presets
+# ---------------------------------------------------------------------------
 
-
-@app.route("/session/<sid>/upload", methods=["POST"])
-def upload(sid):
-    f = request.files.get("file")
-    if not f:
-        return jsonify({"error": "ファイルがありません"}), 400
-    img = Image.open(f.stream)
-    img = img.convert("RGB")
-    # Auto-upscale very small images (e.g., old scans at 96dpi)
-    from modules.enhance import upscale_if_small
-    img = upscale_if_small(img, target_short_side=1800)
-    save_session_img(sid, img, "original.png")
-    save_session_img(sid, img, "current.png")
-    # Save preview
-    prev = _preview(img)
-    save_session_img(sid, prev, "preview.jpg")
-    return jsonify({"ok": True, "w": img.width, "h": img.height})
-
-
-@app.route("/session/<sid>/preview")
-def get_preview(sid):
-    name = request.args.get("name", "current.png")
-    img = load_session_img(sid, name)
-    prev = _preview(img)
-    return _img_response(prev, "JPEG")
-
-
-@app.route("/session/<sid>/download_current")
-def download_current(sid):
-    img = load_session_img(sid, "current.png")
-    return _img_response(img, "PNG")
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Person detection & selection
-# ═════════════════════════════════════════════════════════════════════════════
-@app.route("/session/<sid>/detect_persons", methods=["POST"])
-def detect_persons(sid):
-    if not _configure_gemini():
-        return jsonify({"error": "Gemini APIキーが設定されていません"}), 400
-    img = load_session_img(sid, "original.png")
-    from modules.gemini_edit import detect_persons as dp
-    persons = dp(img)
-    return jsonify({"persons": persons})
-
-
-@app.route("/session/<sid>/select_person", methods=["POST"])
-def select_person(sid):
-    data = request.get_json()
-    label = data.get("label", "")
-    if not _configure_gemini():
-        return jsonify({"error": "Gemini APIキーが設定されていません"}), 400
-
-    jid = jobs.create()
-
-    def _run():
-        try:
-            img = load_session_img(sid, "original.png")
-            from modules.gemini_edit import isolate_person
-            jobs.update(jid, message="故人様を選択中...")
-            result = isolate_person(img, label)
-            save_session_img(sid, result, "current.png")
-            jobs.done(jid)
-        except Exception as e:
-            jobs.fail(jid, str(e))
-
-    threading.Thread(target=_run, daemon=True).start()
-    return jsonify({"job_id": jid})
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Enhancement
-# ═════════════════════════════════════════════════════════════════════════════
-@app.route("/session/<sid>/enhance", methods=["POST"])
-def enhance(sid):
-    data = request.get_json() or {}
-    brightness = float(data.get("brightness", 1.0))
-    contrast = float(data.get("contrast", 1.05))
-    sharpness = float(data.get("sharpness", 1.5))
-    img = load_session_img(sid, "current.png")
-    from modules.enhance import auto_enhance
-    result = auto_enhance(img.convert("RGB"), brightness, contrast, sharpness)
-    save_session_img(sid, result, "current.png")
-    return jsonify({"ok": True})
-
-
-@app.route("/session/<sid>/gemini_enhance", methods=["POST"])
-def gemini_enhance(sid):
-    if not _configure_gemini():
-        return jsonify({"error": "Gemini APIキーが設定されていません"}), 400
-    jid = jobs.create()
-
-    def _run():
-        try:
-            img = load_session_img(sid, "current.png")
-            from modules.gemini_edit import enhance_quality
-            jobs.update(jid, message="AI高画質化処理中...")
-            result = enhance_quality(img.convert("RGB"))
-            save_session_img(sid, result, "current.png")
-            jobs.done(jid)
-        except Exception as e:
-            jobs.fail(jid, str(e))
-
-    threading.Thread(target=_run, daemon=True).start()
-    return jsonify({"job_id": jid})
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Background removal
-# ═════════════════════════════════════════════════════════════════════════════
-@app.route("/session/<sid>/remove_bg", methods=["POST"])
-def remove_bg(sid):
-    jid = jobs.create()
-
-    def _run():
-        try:
-            jobs.update(jid, message="AIモデルを準備中（初回は1〜2分かかります）...", progress=5)
-            img = load_session_img(sid, "current.png")
-            from modules.bg_remove import remove_background
-            jobs.update(jid, message="背景を除去中...", progress=30)
-            rgba = remove_background(img.convert("RGB"))
-            save_session_img(sid, rgba, "cutout.png")
-            save_session_img(sid, rgba, "current.png")
-            jobs.done(jid, "背景除去が完了しました")
-        except Exception as e:
-            jobs.fail(jid, str(e))
-
-    threading.Thread(target=_run, daemon=True).start()
-    return jsonify({"job_id": jid})
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — AI editing
-# ═════════════════════════════════════════════════════════════════════════════
-@app.route("/session/<sid>/gemini_necktie", methods=["POST"])
-def gemini_necktie(sid):
-    if not _configure_gemini():
-        return jsonify({"error": "Gemini APIキーが設定されていません"}), 400
-    jid = jobs.create()
-
-    def _run():
-        try:
-            img = load_session_img(sid, "current.png")
-            from modules.gemini_edit import change_necktie_black
-            jobs.update(jid, message="ネクタイを黒色に変更中...")
-            result = change_necktie_black(img.convert("RGB"))
-            save_session_img(sid, result, "current.png")
-            jobs.done(jid)
-        except Exception as e:
-            jobs.fail(jid, str(e))
-
-    threading.Thread(target=_run, daemon=True).start()
-    return jsonify({"job_id": jid})
-
-
-@app.route("/session/<sid>/gemini_clothing", methods=["POST"])
-def gemini_clothing(sid):
-    if not _configure_gemini():
-        return jsonify({"error": "Gemini APIキーが設定されていません"}), 400
-    data = request.get_json() or {}
-    prompt = data.get("prompt", "")
-    if not prompt:
-        return jsonify({"error": "プロンプトが空です"}), 400
-    jid = jobs.create()
-
-    def _run():
-        try:
-            img = load_session_img(sid, "current.png")
-            from modules.gemini_edit import change_clothing
-            jobs.update(jid, message="衣装を変更中...")
-            result = change_clothing(img.convert("RGB"), prompt)
-            save_session_img(sid, result, "current.png")
-            jobs.done(jid)
-        except Exception as e:
-            jobs.fail(jid, str(e))
-
-    threading.Thread(target=_run, daemon=True).start()
-    return jsonify({"job_id": jid})
-
-
-@app.route("/session/<sid>/gemini_remove_props", methods=["POST"])
-def gemini_remove_props(sid):
-    if not _configure_gemini():
-        return jsonify({"error": "Gemini APIキーが設定されていません"}), 400
-    jid = jobs.create()
-
-    def _run():
-        try:
-            img = load_session_img(sid, "current.png")
-            from modules.gemini_edit import remove_props
-            jobs.update(jid, message="持ち物・小道具を除去中...")
-            result = remove_props(img.convert("RGB"))
-            save_session_img(sid, result, "current.png")
-            jobs.done(jid)
-        except Exception as e:
-            jobs.fail(jid, str(e))
-
-    threading.Thread(target=_run, daemon=True).start()
-    return jsonify({"job_id": jid})
-
-
-@app.route("/session/<sid>/gemini_remove_others", methods=["POST"])
-def gemini_remove_others(sid):
-    if not _configure_gemini():
-        return jsonify({"error": "Gemini APIキーが設定されていません"}), 400
-    jid = jobs.create()
-
-    def _run():
-        try:
-            img = load_session_img(sid, "current.png")
-            from modules.gemini_edit import remove_others_fill
-            jobs.update(jid, message="他の人物を除去・体を補完中...")
-            result = remove_others_fill(img.convert("RGB"))
-            save_session_img(sid, result, "current.png")
-            jobs.done(jid)
-        except Exception as e:
-            jobs.fail(jid, str(e))
-
-    threading.Thread(target=_run, daemon=True).start()
-    return jsonify({"job_id": jid})
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Job status polling
-# ═════════════════════════════════════════════════════════════════════════════
-@app.route("/job/<jid>")
-def job_status(jid):
-    return jsonify(jobs.get(jid))
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Photo output
-# ═════════════════════════════════════════════════════════════════════════════
-@app.route("/session/<sid>/compose_photo", methods=["POST"])
-def compose_photo(sid):
-    data = request.get_json() or {}
-    size_id = data.get("size_id", "yotsugiri")
-    bg_color = data.get("bg_color", "#ffffff")
-    filename = data.get("filename", size_id)
-
-    sizes = load_sizes()
-    entry = next((s for s in sizes if s["id"] == size_id), None)
-    if not entry:
-        return jsonify({"error": f"サイズが見つかりません: {size_id}"}), 400
-
-    # Use cutout if it exists, else use current
-    cutout_path = session_path(sid, "cutout.png")
-    person = load_session_img(sid, "cutout.png" if cutout_path.exists() else "current.png")
-
-    from modules.compose import compose_portrait
-    result = compose_portrait(person if person.mode == "RGBA" else person.convert("RGBA"),
-                              bg_color, entry)
-
-    # Save to NAS output if configured
-    cfg = load_config()
-    nas_out = cfg.get("nas_output_path", "")
-    date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_name = f"{filename}_{date_str}.jpg"
-
-    if nas_out and Path(nas_out).exists():
-        out_path = Path(nas_out) / out_name
-        result.save(out_path, format="JPEG", quality=95, dpi=(350, 350))
-
-    # Also return for download
-    buf = io.BytesIO()
-    result.save(buf, format="JPEG", quality=95, dpi=(350, 350))
-    buf.seek(0)
-    return send_file(buf, mimetype="image/jpeg",
-                     as_attachment=True, download_name=out_name)
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Print layout
-# ═════════════════════════════════════════════════════════════════════════════
-@app.route("/session/<sid>/print_layout/a3nobi", methods=["POST"])
-def print_layout_a3nobi(sid):
-    data = request.get_json() or {}
-    bg_color = data.get("bg_color", "#ffffff")
-
-    sizes = load_sizes()
-    person = load_session_img(sid, "cutout.png"
-                              if session_path(sid, "cutout.png").exists() else "current.png")
-    if person.mode != "RGBA":
-        person = person.convert("RGBA")
-
-    from modules.compose import compose_portrait, get_pixel_size
-    from modules.print_layout import a3nobi_layout
-
-    yo_e = next(s for s in sizes if s["id"] == "yotsugiri")
-    cab_e = next(s for s in sizes if s["id"] == "cabinet")
-    mini_e = next(s for s in sizes if s["id"] == "askanet_mini")
-
-    yo_img = compose_portrait(person, bg_color, yo_e)
-    cab_img = compose_portrait(person, bg_color, cab_e)
-    mini_imgs = [compose_portrait(person, bg_color, mini_e) for _ in range(3)]
-
-    layout = a3nobi_layout(yo_img, cab_img, mini_imgs)
-    buf = io.BytesIO()
-    layout.save(buf, format="JPEG", quality=95, dpi=(350, 350))
-    buf.seek(0)
-    return send_file(buf, mimetype="image/jpeg",
-                     as_attachment=False, download_name="print_a3nobi.jpg")
-
-
-@app.route("/session/<sid>/print_layout/a5", methods=["POST"])
-def print_layout_a5(sid):
-    data = request.get_json() or {}
-    bg_color = data.get("bg_color", "#ffffff")
-    size_type = data.get("size_type", "cabinet")  # "cabinet" or "mini"
-
-    sizes = load_sizes()
-    person = load_session_img(sid, "cutout.png"
-                              if session_path(sid, "cutout.png").exists() else "current.png")
-    if person.mode != "RGBA":
-        person = person.convert("RGBA")
-
-    from modules.compose import compose_portrait
-    from modules.print_layout import a5_layout
-
-    if size_type == "cabinet":
-        e = next(s for s in sizes if s["id"] == "cabinet")
-        photos = [compose_portrait(person, bg_color, e)]
-    else:
-        e = next(s for s in sizes if s["id"] == "askanet_mini")
-        photos = [compose_portrait(person, bg_color, e) for _ in range(6)]
-
-    layout = a5_layout(photos, size_type)
-    buf = io.BytesIO()
-    layout.save(buf, format="JPEG", quality=95, dpi=(350, 350))
-    buf.seek(0)
-    return send_file(buf, mimetype="image/jpeg",
-                     as_attachment=False, download_name=f"print_a5_{size_type}.jpg")
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Video
-# ═════════════════════════════════════════════════════════════════════════════
-@app.route("/session/<sid>/upload_bg", methods=["POST"])
-def upload_bg(sid):
-    files = request.files.getlist("files")
-    if not files:
-        return jsonify({"error": "背景ファイルがありません"}), 400
-    saved = []
-    for i, f in enumerate(files[:6]):
-        dest = session_path(sid, f"bg_{i:02d}.png")
-        img = Image.open(f.stream).convert("RGB")
-        img.save(dest, format="PNG")
-        saved.append(str(dest.name))
-    return jsonify({"ok": True, "files": saved})
-
-
-@app.route("/session/<sid>/compose_video", methods=["POST"])
-def compose_video(sid):
-    data = request.get_json() or {}
-    duration_per_bg = float(data.get("duration_per_bg", 45))
-    fade_duration = float(data.get("fade_duration", 3))
-    fps = int(data.get("fps", 24))
-
-    # Collect background files in order
-    bg_paths = sorted(session_dir(sid).glob("bg_*.png"))
-    if not bg_paths:
-        return jsonify({"error": "背景素材がアップロードされていません"}), 400
-
-    cutout_path = session_path(sid, "cutout.png")
-    if not cutout_path.exists():
-        return jsonify({"error": "人物切り抜き画像がありません。STEP 3を完了してください"}), 400
-
-    jid = jobs.create()
-    date_str = datetime.now().strftime("%Y%m%d_%H%M%S")
-    out_name = f"saidaniei_{date_str}.mp4"
-    out_path = session_path(sid, out_name)
-
-    def _run():
-        try:
-            jobs.update(jid, message="動画を生成中...", progress=5)
-            from modules.video_compose import create_memorial_video
-
-            def prog(cur, total):
-                pct = min(95, int(cur / max(total, 1) * 95))
-                jobs.update(jid, progress=pct, message=f"動画生成中 {pct}%")
-
-            create_memorial_video(
-                str(cutout_path),
-                [str(p) for p in bg_paths],
-                str(out_path),
-                duration_per_bg=duration_per_bg,
-                fade_duration=fade_duration,
-                fps=fps,
-                progress_cb=prog,
-            )
-
-            # Copy to NAS if configured
-            cfg = load_config()
-            nas_out = cfg.get("nas_output_path", "")
-            if nas_out and Path(nas_out).exists():
-                shutil.copy(out_path, Path(nas_out) / out_name)
-
-            jobs.done(jid, "動画が完成しました")
-            jobs.update(jid, filename=out_name)
-        except Exception as e:
-            jobs.fail(jid, str(e))
-
-    threading.Thread(target=_run, daemon=True).start()
-    return jsonify({"job_id": jid})
-
-
-@app.route("/session/<sid>/download_video/<filename>")
-def download_video(sid, filename):
-    path = session_path(sid, filename)
-    if not path.exists():
-        abort(404)
-    return send_file(path, as_attachment=True, download_name=filename)
-
-
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Settings
-# ═════════════════════════════════════════════════════════════════════════════
 @app.route("/settings", methods=["GET", "POST"])
 def settings():
     if request.method == "GET":
-        cfg = load_config()
-        # Never expose API key fully; mask it
-        key = cfg.get("gemini_api_key", "")
-        cfg["gemini_api_key_masked"] = ("*" * (len(key) - 4) + key[-4:]) if len(key) > 4 else key
-        return jsonify(cfg)
-    data = request.get_json() or {}
-    cfg = load_config()
-    for k in ("nas_input_path", "nas_output_path", "nas_bg_assets_path",
-              "default_bg_color", "video_duration_per_bg",
-              "video_fade_duration", "video_fps"):
-        if k in data:
-            cfg[k] = data[k]
-    if "gemini_api_key" in data and data["gemini_api_key"] and "*" not in data["gemini_api_key"]:
-        cfg["gemini_api_key"] = data["gemini_api_key"]
-    save_config(cfg)
+        return jsonify(load_config())
+    data = request.json
+    save_config(data)
+    # Re-configure Gemini if key changed
+    key = data.get("gemini_api_key", "")
+    if key:
+        from modules.gemini_edit import configure
+        configure(key)
     return jsonify({"ok": True})
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Sizes CRUD
-# ═════════════════════════════════════════════════════════════════════════════
 @app.route("/sizes", methods=["GET"])
 def get_sizes():
     sizes = load_sizes()
-    from modules.compose import mm_to_px
     for s in sizes:
         s["px_w"] = mm_to_px(s["width_mm"], s["dpi"])
         s["px_h"] = mm_to_px(s["height_mm"], s["dpi"])
@@ -615,99 +172,508 @@ def get_sizes():
 
 @app.route("/sizes", methods=["POST"])
 def add_size():
-    data = request.get_json() or {}
     sizes = load_sizes()
-    new_id = data.get("id") or str(uuid.uuid4())[:8]
-    entry = {
-        "id": new_id,
-        "label": data.get("label", "新しいサイズ"),
-        "width_mm": float(data.get("width_mm", 100)),
-        "height_mm": float(data.get("height_mm", 140)),
-        "dpi": int(data.get("dpi", 350)),
-    }
-    sizes.append(entry)
+    data = request.json
+    data["id"] = str(uuid.uuid4())[:8]
+    data.setdefault("filename", data["label"])
+    sizes.append(data)
     save_sizes(sizes)
-    return jsonify({"ok": True, "entry": entry})
+    return jsonify({"ok": True, "id": data["id"]})
 
 
-@app.route("/sizes/<sid_>", methods=["PUT"])
-def update_size(sid_):
-    data = request.get_json() or {}
+@app.route("/sizes/<sid>", methods=["PUT"])
+def update_size(sid):
     sizes = load_sizes()
     for s in sizes:
-        if s["id"] == sid_:
-            for k in ("label", "width_mm", "height_mm", "dpi"):
-                if k in data:
-                    s[k] = data[k]
-            save_sizes(sizes)
-            return jsonify({"ok": True})
-    return jsonify({"error": "Not found"}), 404
-
-
-@app.route("/sizes/<sid_>", methods=["DELETE"])
-def delete_size(sid_):
-    sizes = load_sizes()
-    original = len(sizes)
-    sizes = [s for s in sizes if s["id"] != sid_]
-    if len(sizes) == original:
-        return jsonify({"error": "Not found"}), 404
+        if s["id"] == sid:
+            s.update(request.json)
+            s["id"] = sid  # protect id
     save_sizes(sizes)
     return jsonify({"ok": True})
 
 
-# ═════════════════════════════════════════════════════════════════════════════
-# ROUTES — Clothing presets CRUD
-# ═════════════════════════════════════════════════════════════════════════════
-@app.route("/presets", methods=["GET"])
+@app.route("/sizes/<sid>", methods=["DELETE"])
+def delete_size(sid):
+    sizes = [s for s in load_sizes() if s["id"] != sid]
+    save_sizes(sizes)
+    return jsonify({"ok": True})
+
+
+@app.route("/clothing_presets", methods=["GET"])
 def get_presets():
     return jsonify(load_presets())
 
 
-@app.route("/presets/<category>", methods=["POST"])
+@app.route("/clothing_presets/<category>", methods=["POST"])
 def add_preset(category):
-    data = request.get_json() or {}
     presets = load_presets()
-    if category not in presets:
-        presets[category] = []
-    new_id = data.get("id") or f"{category}_{len(presets[category])+1}"
-    entry = {"id": new_id,
-             "label": data.get("label", "新しいプリセット"),
-             "prompt": data.get("prompt", "")}
-    presets[category].append(entry)
-    save_presets(presets)
-    return jsonify({"ok": True, "entry": entry})
-
-
-@app.route("/presets/<category>/<pid>", methods=["PUT"])
-def update_preset(category, pid):
-    data = request.get_json() or {}
-    presets = load_presets()
-    for p in presets.get(category, []):
-        if p["id"] == pid:
-            for k in ("label", "prompt"):
-                if k in data:
-                    p[k] = data[k]
-            save_presets(presets)
-            return jsonify({"ok": True})
-    return jsonify({"error": "Not found"}), 404
-
-
-@app.route("/presets/<category>/<pid>", methods=["DELETE"])
-def delete_preset(category, pid):
-    presets = load_presets()
-    original = len(presets.get(category, []))
-    presets[category] = [p for p in presets.get(category, []) if p["id"] != pid]
-    if len(presets[category]) == original:
-        return jsonify({"error": "Not found"}), 404
+    data = request.json
+    data["id"] = str(uuid.uuid4())[:8]
+    presets.setdefault(category, []).append(data)
     save_presets(presets)
     return jsonify({"ok": True})
 
 
-# ═════════════════════════════════════════════════════════════════════════════
+@app.route("/clothing_presets/<category>/<pid>", methods=["PUT"])
+def update_preset(category, pid):
+    presets = load_presets()
+    for p in presets.get(category, []):
+        if p["id"] == pid:
+            p.update(request.json)
+            p["id"] = pid
+    save_presets(presets)
+    return jsonify({"ok": True})
+
+
+@app.route("/clothing_presets/<category>/<pid>", methods=["DELETE"])
+def delete_preset(category, pid):
+    presets = load_presets()
+    if category in presets:
+        presets[category] = [p for p in presets[category] if p["id"] != pid]
+    save_presets(presets)
+    return jsonify({"ok": True})
+
+
+# ---------------------------------------------------------------------------
+# Routes: Session / Upload
+# ---------------------------------------------------------------------------
+
+@app.route("/upload", methods=["POST"])
+def upload():
+    f = request.files.get("file")
+    if not f:
+        return jsonify({"error": "ファイルが見つかりません"}), 400
+    sid = str(uuid.uuid4())[:8]
+    d = session_dir(sid)
+    img = Image.open(f.stream)
+    # Auto-rotate from EXIF
+    from PIL import ImageOps
+    img = ImageOps.exif_transpose(img)
+    if img.mode not in ("RGB", "RGBA"):
+        img = img.convert("RGB")
+    save_session_img(sid, img, "original.jpg")
+    save_session_img(sid, img, "current.png")
+    return jsonify({"session_id": sid})
+
+
+@app.route("/session/<sid>/preview")
+def session_preview(sid):
+    name = request.args.get("name", "current.png")
+    data = preview_bytes(sid, name)
+    mime = "image/png" if name.endswith(".png") or load_session_img(sid, name).mode == "RGBA" else "image/jpeg"
+    return Response(data, mimetype=mime)
+
+
+# ---------------------------------------------------------------------------
+# Routes: Enhance
+# ---------------------------------------------------------------------------
+
+@app.route("/session/<sid>/enhance", methods=["POST"])
+def enhance(sid):
+    body = request.json or {}
+    brightness = float(body.get("brightness", 1.0))
+    contrast = float(body.get("contrast", 1.05))
+    sharpness = float(body.get("sharpness", 1.5))
+    from modules.enhance import auto_enhance, upscale_lanczos
+    img = load_session_img(sid, "original.jpg")
+    img = upscale_lanczos(img)
+    img = auto_enhance(img, brightness, contrast, sharpness)
+    save_session_img(sid, img, "enhanced.jpg")
+    save_session_img(sid, img, "current.png")
+    return jsonify({"ok": True})
+
+
+@app.route("/session/<sid>/gemini_enhance", methods=["POST"])
+def gemini_enhance(sid):
+    jid = jobs.create()
+
+    def work():
+        try:
+            cfg = load_config()
+            from modules.gemini_edit import configure, enhance_quality
+            configure(cfg["gemini_api_key"])
+            img = load_session_img(sid, "current.png")
+            result = enhance_quality(img)
+            save_session_img(sid, result, "enhanced.jpg")
+            save_session_img(sid, result, "current.png")
+            jobs.finish(jid)
+        except Exception as e:
+            jobs.fail(jid, str(e))
+
+    threading.Thread(target=work, daemon=True).start()
+    return jsonify({"job_id": jid})
+
+
+# ---------------------------------------------------------------------------
+# Routes: Person detection & isolation
+# ---------------------------------------------------------------------------
+
+@app.route("/session/<sid>/detect_persons", methods=["POST"])
+def detect_persons(sid):
+    jid = jobs.create()
+
+    def work():
+        try:
+            cfg = load_config()
+            from modules.gemini_edit import configure, detect_persons as dp
+            configure(cfg["gemini_api_key"])
+            img = load_session_img(sid, "current.png")
+            persons = dp(img)
+            jobs.finish(jid, result={"persons": persons})
+        except Exception as e:
+            jobs.fail(jid, str(e))
+
+    threading.Thread(target=work, daemon=True).start()
+    return jsonify({"job_id": jid})
+
+
+@app.route("/session/<sid>/isolate_person", methods=["POST"])
+def isolate_person(sid):
+    label = (request.json or {}).get("label", "人物1")
+    jid = jobs.create()
+
+    def work():
+        try:
+            cfg = load_config()
+            from modules.gemini_edit import configure, isolate_person as ip
+            configure(cfg["gemini_api_key"])
+            img = load_session_img(sid, "current.png")
+            result = ip(img, label)
+            save_session_img(sid, result, "current.png")
+            jobs.finish(jid)
+        except Exception as e:
+            jobs.fail(jid, str(e))
+
+    threading.Thread(target=work, daemon=True).start()
+    return jsonify({"job_id": jid})
+
+
+# ---------------------------------------------------------------------------
+# Routes: Background removal
+# ---------------------------------------------------------------------------
+
+@app.route("/session/<sid>/remove_bg", methods=["POST"])
+def remove_bg(sid):
+    jid = jobs.create()
+
+    def work():
+        try:
+            jobs.update(jid, progress=5, message="AIモデルを準備中…（初回は数分かかります）")
+            from modules.bg_remove import remove_background
+            img = load_session_img(sid, "current.png")
+            jobs.update(jid, progress=30, message="背景を解析中…")
+            rgba = remove_background(img)
+            save_session_img(sid, rgba, "cutout.png")
+            save_session_img(sid, rgba, "current.png")
+            jobs.finish(jid)
+        except Exception as e:
+            jobs.fail(jid, str(e))
+
+    threading.Thread(target=work, daemon=True).start()
+    return jsonify({"job_id": jid})
+
+
+# ---------------------------------------------------------------------------
+# Routes: AI editing (Gemini)
+# ---------------------------------------------------------------------------
+
+def _gemini_job(sid: str, fn, *args) -> str:
+    """Generic helper: run a gemini_edit function in a background job."""
+    jid = jobs.create()
+
+    def work():
+        try:
+            cfg = load_config()
+            from modules import gemini_edit
+            gemini_edit.configure(cfg["gemini_api_key"])
+            img = load_session_img(sid, "current.png")
+            result = fn(img, *args)
+            save_session_img(sid, result, "current.png")
+            jobs.finish(jid)
+        except Exception as e:
+            jobs.fail(jid, str(e))
+
+    threading.Thread(target=work, daemon=True).start()
+    return jid
+
+
+@app.route("/session/<sid>/necktie_black", methods=["POST"])
+def necktie_black(sid):
+    from modules.gemini_edit import change_necktie_black
+    jid = _gemini_job(sid, change_necktie_black)
+    return jsonify({"job_id": jid})
+
+
+@app.route("/session/<sid>/clothing", methods=["POST"])
+def clothing(sid):
+    prompt = (request.json or {}).get("prompt", "")
+    if not prompt:
+        return jsonify({"error": "プロンプトが空です"}), 400
+    from modules.gemini_edit import change_clothing
+    jid = _gemini_job(sid, change_clothing, prompt)
+    return jsonify({"job_id": jid})
+
+
+@app.route("/session/<sid>/remove_objects", methods=["POST"])
+def remove_objects(sid):
+    from modules.gemini_edit import remove_objects as ro
+    jid = _gemini_job(sid, ro)
+    return jsonify({"job_id": jid})
+
+
+@app.route("/session/<sid>/remove_others", methods=["POST"])
+def remove_others(sid):
+    from modules.gemini_edit import remove_others_fill
+    jid = _gemini_job(sid, remove_others_fill)
+    return jsonify({"job_id": jid})
+
+
+# ---------------------------------------------------------------------------
+# Routes: Save before/after snapshots for comparison
+# ---------------------------------------------------------------------------
+
+@app.route("/session/<sid>/snapshot", methods=["POST"])
+def snapshot(sid):
+    """Save current.png as before.png for before/after comparison."""
+    src = session_dir(sid) / "current.png"
+    dst = session_dir(sid) / "before.png"
+    shutil.copy2(src, dst)
+    return jsonify({"ok": True})
+
+
+# ---------------------------------------------------------------------------
+# Routes: Compose photo output
+# ---------------------------------------------------------------------------
+
+@app.route("/session/<sid>/compose_photo", methods=["POST"])
+def compose_photo(sid):
+    body = request.json or {}
+    size_id = body.get("size_id")
+    bg_color = body.get("bg_color", "#ffffff")
+
+    sizes = load_sizes()
+    entry = next((s for s in sizes if s["id"] == size_id), None)
+    if not entry:
+        return jsonify({"error": "サイズが見つかりません"}), 400
+
+    from modules.compose import compose_portrait
+    img = load_session_img(sid, "current.png")
+    if img.mode != "RGBA":
+        img = img.convert("RGBA")
+    result = compose_portrait(img, bg_color, entry)
+
+    fname = entry.get("filename", size_id)
+    out_name = f"{fname}_preview.jpg"
+    save_session_img(sid, result, out_name)
+    return jsonify({"ok": True, "preview_name": out_name})
+
+
+@app.route("/session/<sid>/download_photo", methods=["POST"])
+def download_photo(sid):
+    body = request.json or {}
+    size_id = body.get("size_id")
+    bg_color = body.get("bg_color", "#ffffff")
+    quality = int(body.get("quality", 95))
+
+    sizes = load_sizes()
+    entry = next((s for s in sizes if s["id"] == size_id), None)
+    if not entry:
+        return jsonify({"error": "サイズが見つかりません"}), 400
+
+    from modules.compose import compose_portrait
+    from modules.enhance import to_jpeg_bytes
+    img = load_session_img(sid, "current.png")
+    if img.mode != "RGBA":
+        img = img.convert("RGBA")
+    result = compose_portrait(img, bg_color, entry)
+
+    fname = entry.get("filename", size_id)
+    buf = io.BytesIO(to_jpeg_bytes(result, quality=quality))
+    buf.seek(0)
+
+    # Save to NAS if configured
+    cfg = load_config()
+    nas_out = cfg.get("nas_output_path", "")
+    if nas_out and Path(nas_out).exists():
+        out_path = Path(nas_out) / f"{fname}.jpg"
+        result.save(out_path, format="JPEG", quality=quality, dpi=(350, 350))
+
+    import datetime
+    date_str = datetime.date.today().strftime("%Y%m%d")
+    return send_file(buf, mimetype="image/jpeg",
+                     as_attachment=True,
+                     download_name=f"{fname}_{date_str}.jpg")
+
+
+# ---------------------------------------------------------------------------
+# Routes: Print layouts
+# ---------------------------------------------------------------------------
+
+@app.route("/session/<sid>/print_a3nobi", methods=["POST"])
+def print_a3nobi(sid):
+    body = request.json or {}
+    bg_color = body.get("bg_color", "#ffffff")
+    sizes = load_sizes()
+
+    from modules.compose import compose_portrait, get_pixel_size
+    from modules.print_layout import build_a3nobi
+    from modules.enhance import to_jpeg_bytes
+
+    def get_composed(size_id: str) -> Image.Image:
+        entry = next((s for s in sizes if s["id"] == size_id), None)
+        if not entry:
+            return None
+        img = load_session_img(sid, "current.png")
+        if img.mode != "RGBA":
+            img = img.convert("RGBA")
+        return compose_portrait(img, bg_color, entry)
+
+    yo = get_composed("yotsugiri")
+    cab = get_composed("cabinet")
+    mn = get_composed("askanet_mini")
+
+    if not yo or not cab or not mn:
+        return jsonify({"error": "サイズ設定が見つかりません"}), 400
+
+    layout = build_a3nobi(yo, cab, [mn, mn, mn])
+    buf = io.BytesIO(to_jpeg_bytes(layout, quality=95))
+    buf.seek(0)
+    return send_file(buf, mimetype="image/jpeg",
+                     as_attachment=True, download_name="print_a3nobi.jpg")
+
+
+@app.route("/session/<sid>/print_a5", methods=["POST"])
+def print_a5(sid):
+    body = request.json or {}
+    bg_color = body.get("bg_color", "#ffffff")
+    mode = body.get("mode", "cabinet")  # "cabinet" or "mini"
+    sizes = load_sizes()
+
+    from modules.compose import compose_portrait
+    from modules.print_layout import build_a5_cabinet, build_a5_mini
+    from modules.enhance import to_jpeg_bytes
+
+    img = load_session_img(sid, "current.png")
+    if img.mode != "RGBA":
+        img = img.convert("RGBA")
+
+    if mode == "cabinet":
+        entry = next((s for s in sizes if s["id"] == "cabinet"), None)
+        if not entry:
+            return jsonify({"error": "キャビネサイズが設定されていません"}), 400
+        cab = compose_portrait(img, bg_color, entry)
+        layout = build_a5_cabinet(cab)
+    else:
+        entry = next((s for s in sizes if s["id"] == "askanet_mini"), None)
+        if not entry:
+            return jsonify({"error": "miniサイズが設定されていません"}), 400
+        mn = compose_portrait(img, bg_color, entry)
+        layout = build_a5_mini([mn] * 6)
+
+    buf = io.BytesIO(to_jpeg_bytes(layout, quality=95))
+    buf.seek(0)
+    return send_file(buf, mimetype="image/jpeg",
+                     as_attachment=True, download_name=f"print_a5_{mode}.jpg")
+
+
+# ---------------------------------------------------------------------------
+# Routes: Video
+# ---------------------------------------------------------------------------
+
+@app.route("/session/<sid>/compose_video", methods=["POST"])
+def compose_video(sid):
+    body = request.json or {}
+    bg_names = body.get("bg_names", [])   # filenames stored in session tmp
+    duration_per_bg = float(body.get("duration_per_bg", 45))
+    fade_duration = float(body.get("fade_duration", 3))
+    fps = int(body.get("fps", 24))
+
+    if not bg_names:
+        return jsonify({"error": "背景素材が選択されていません"}), 400
+
+    d = session_dir(sid)
+    bg_paths = [str(d / name) for name in bg_names if (d / name).exists()]
+    person_path = str(d / "current.png")
+
+    if not Path(person_path).exists():
+        return jsonify({"error": "人物画像が見つかりません"}), 400
+
+    jid = jobs.create()
+
+    def work():
+        try:
+            jobs.update(jid, progress=5, message="動画を生成中…")
+            import datetime
+            date_str = datetime.date.today().strftime("%Y%m%d")
+            out_path = str(d / f"saidaniei_{date_str}.mp4")
+
+            from modules.video_compose import create_memorial_video
+
+            def cb(pct, msg):
+                jobs.update(jid, progress=pct, message=msg)
+
+            create_memorial_video(
+                person_path, bg_paths, out_path,
+                duration_per_bg=duration_per_bg,
+                fade_duration=fade_duration,
+                fps=fps,
+                progress_cb=cb,
+            )
+            jobs.finish(jid, result={"filename": Path(out_path).name})
+        except Exception as e:
+            jobs.fail(jid, str(e))
+
+    threading.Thread(target=work, daemon=True).start()
+    return jsonify({"job_id": jid})
+
+
+@app.route("/session/<sid>/upload_bg", methods=["POST"])
+def upload_bg(sid):
+    files = request.files.getlist("files")
+    saved = []
+    for f in files:
+        name = f"bg_{uuid.uuid4().hex[:6]}_{Path(f.filename).suffix or '.jpg'}"
+        path = session_dir(sid) / name
+        f.save(str(path))
+        saved.append(name)
+    return jsonify({"names": saved})
+
+
+@app.route("/session/<sid>/download_video")
+def download_video(sid):
+    fname = request.args.get("filename")
+    path = session_dir(sid) / fname
+    if not path.exists():
+        return jsonify({"error": "ファイルが見つかりません"}), 404
+
+    # Copy to NAS if configured
+    cfg = load_config()
+    nas_out = cfg.get("nas_output_path", "")
+    if nas_out and Path(nas_out).exists():
+        shutil.copy2(path, Path(nas_out) / fname)
+
+    return send_file(str(path), mimetype="video/mp4",
+                     as_attachment=True, download_name=fname)
+
+
+# ---------------------------------------------------------------------------
+# Routes: Job polling
+# ---------------------------------------------------------------------------
+
+@app.route("/job/<jid>")
+def job_status(jid):
+    return jsonify(jobs.get(jid))
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
 if __name__ == "__main__":
-    print("=" * 50)
-    print("  ひすい野ヴィラ 遺影写真作成ツール 起動中...")
-    print("  ブラウザで http://localhost:5001 を開いてください")
-    print("=" * 50)
-    threading.Timer(1.5, lambda: webbrowser.open("http://localhost:5001")).start()
+    # Pre-load Gemini key if configured
+    cfg = load_config()
+    key = cfg.get("gemini_api_key", "")
+    if key:
+        from modules.gemini_edit import configure
+        configure(key)
     app.run(host="127.0.0.1", port=5001, debug=False, threaded=True)
