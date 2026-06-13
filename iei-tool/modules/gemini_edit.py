@@ -1,38 +1,46 @@
+import base64
 import io
 import json
 import re
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from PIL import Image
+
+_client: genai.Client | None = None
+
+_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation"
+_TEXT_MODEL = "gemini-2.0-flash"
 
 
 def configure(api_key: str):
-    genai.configure(api_key=api_key)
+    global _client
+    _client = genai.Client(api_key=api_key)
 
 
-def _get_model(name: str = "gemini-2.0-flash-exp-image-generation"):
-    return genai.GenerativeModel(name)
+def _get_client() -> genai.Client:
+    if _client is None:
+        raise RuntimeError(
+            "Gemini APIキーが設定されていません。設定画面でAPIキーを入力してください。"
+        )
+    return _client
 
 
 def _edit(img: Image.Image, prompt: str) -> Image.Image:
     """Send image + instruction to Gemini, return the edited image."""
-    model = _get_model()
-    response = model.generate_content(
-        [prompt, img.convert("RGB")],
-        generation_config=genai.GenerationConfig(
-            response_modalities=["TEXT", "IMAGE"]
+    client = _get_client()
+    response = client.models.generate_content(
+        model=_IMAGE_MODEL,
+        contents=[img.convert("RGB"), prompt],
+        config=types.GenerateContentConfig(
+            response_modalities=["IMAGE", "TEXT"]
         ),
     )
     for part in response.candidates[0].content.parts:
-        # SDK may surface image data under different attributes depending on version
-        data = None
-        if hasattr(part, "inline_data") and part.inline_data:
-            data = part.inline_data.data
-        elif hasattr(part, "data") and part.mime_type and part.mime_type.startswith("image/"):
-            data = part.data
-        if data:
-            import base64
-            raw = base64.b64decode(data) if isinstance(data, str) else data
+        if part.inline_data is not None:
+            raw = part.inline_data.data
+            if isinstance(raw, str):
+                raw = base64.b64decode(raw)
             return Image.open(io.BytesIO(raw)).convert("RGBA")
     raise ValueError("Geminiから画像が返されませんでした。APIキーと権限を確認してください。")
 
@@ -82,15 +90,16 @@ def remove_others_fill(img: Image.Image) -> Image.Image:
 
 def detect_persons(img: Image.Image) -> list:
     """Return list of person bounding boxes as relative coords (0..1)."""
-    model = _get_model("gemini-2.0-flash")
-    response = model.generate_content(
-        [
+    client = _get_client()
+    response = client.models.generate_content(
+        model=_TEXT_MODEL,
+        contents=[
+            img.convert("RGB"),
             "この写真に写っている人物全員の位置を特定してください。"
             "JSON配列のみ返してください（説明不要）。"
             '形式: [{"index":0,"label":"人物1","x":0.1,"y":0.05,"w":0.2,"h":0.4}, ...]'
             "x,y,w,hは画像全体に対する割合（0.0〜1.0）。左上が原点。",
-            img.convert("RGB"),
-        ]
+        ],
     )
     text = response.text.strip()
     m = re.search(r"\[.*\]", text, re.DOTALL)
