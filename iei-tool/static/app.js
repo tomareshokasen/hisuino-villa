@@ -696,17 +696,20 @@ function closeSettings() {
 
 async function loadSettingsForm() {
   const cfg = await apiFetch("/settings");
-  qs("#cfg-gemini-key").value = cfg.gemini_api_key || "";
-  qs("#cfg-nas-out").value    = cfg.nas_output_path || "";
-  qs("#cfg-nas-in").value     = cfg.nas_input_path || "";
-  qs("#cfg-nas-bg").value     = cfg.nas_bg_assets_path || "";
-  qs("#cfg-vid-dur").value    = cfg.video_duration_per_bg ?? 45;
-  qs("#cfg-vid-fade").value   = cfg.video_fade_duration ?? 3;
+  qs("#cfg-gemini-key").value         = cfg.gemini_api_key || "";
+  qs("#cfg-gemini-image-model").value = cfg.gemini_image_model || "gemini-2.0-flash-exp-image-generation";
+  qs("#cfg-nas-out").value            = cfg.nas_output_path || "";
+  qs("#cfg-nas-in").value             = cfg.nas_input_path || "";
+  qs("#cfg-nas-bg").value             = cfg.nas_bg_assets_path || "";
+  qs("#cfg-vid-dur").value            = cfg.video_duration_per_bg ?? 45;
+  qs("#cfg-vid-fade").value           = cfg.video_fade_duration ?? 3;
 }
 
 async function saveSettings() {
   const cfg = {
     gemini_api_key:      qs("#cfg-gemini-key").value.trim(),
+    gemini_image_model:  qs("#cfg-gemini-image-model").value.trim() || "gemini-2.0-flash-exp-image-generation",
+    gemini_text_model:   "gemini-2.0-flash",
     nas_output_path:     qs("#cfg-nas-out").value.trim(),
     nas_input_path:      qs("#cfg-nas-in").value.trim(),
     nas_bg_assets_path:  qs("#cfg-nas-bg").value.trim(),

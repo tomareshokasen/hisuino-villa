@@ -9,13 +9,17 @@ from PIL import Image
 
 _client: genai.Client | None = None
 
-_IMAGE_MODEL = "gemini-2.0-flash-preview-image-generation"
+_IMAGE_MODEL = "gemini-2.0-flash-exp-image-generation"
 _TEXT_MODEL = "gemini-2.0-flash"
 
 
-def configure(api_key: str):
-    global _client
+def configure(api_key: str, image_model: str = None, text_model: str = None):
+    global _client, _IMAGE_MODEL, _TEXT_MODEL
     _client = genai.Client(api_key=api_key)
+    if image_model:
+        _IMAGE_MODEL = image_model
+    if text_model:
+        _TEXT_MODEL = text_model
 
 
 def _get_client() -> genai.Client:

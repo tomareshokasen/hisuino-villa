@@ -157,7 +157,7 @@ def settings():
     key = data.get("gemini_api_key", "")
     if key:
         from modules.gemini_edit import configure
-        configure(key)
+        configure(key, data.get("gemini_image_model"), data.get("gemini_text_model"))
     return jsonify({"ok": True})
 
 
@@ -294,7 +294,7 @@ def gemini_enhance(sid):
         try:
             cfg = load_config()
             from modules.gemini_edit import configure, enhance_quality
-            configure(cfg["gemini_api_key"])
+            configure(cfg["gemini_api_key"], cfg.get("gemini_image_model"), cfg.get("gemini_text_model"))
             img = load_session_img(sid, "current.png")
             result = enhance_quality(img)
             save_session_img(sid, result, "enhanced.jpg")
@@ -319,7 +319,7 @@ def detect_persons(sid):
         try:
             cfg = load_config()
             from modules.gemini_edit import configure, detect_persons as dp
-            configure(cfg["gemini_api_key"])
+            configure(cfg["gemini_api_key"], cfg.get("gemini_image_model"), cfg.get("gemini_text_model"))
             img = load_session_img(sid, "current.png")
             persons = dp(img)
             jobs.finish(jid, result={"persons": persons})
@@ -339,7 +339,7 @@ def isolate_person(sid):
         try:
             cfg = load_config()
             from modules.gemini_edit import configure, isolate_person as ip
-            configure(cfg["gemini_api_key"])
+            configure(cfg["gemini_api_key"], cfg.get("gemini_image_model"), cfg.get("gemini_text_model"))
             img = load_session_img(sid, "current.png")
             result = ip(img, label)
             save_session_img(sid, result, "current.png")
@@ -388,7 +388,7 @@ def _gemini_job(sid: str, fn, *args) -> str:
         try:
             cfg = load_config()
             from modules import gemini_edit
-            gemini_edit.configure(cfg["gemini_api_key"])
+            gemini_edit.configure(cfg["gemini_api_key"], cfg.get("gemini_image_model"), cfg.get("gemini_text_model"))
             img = load_session_img(sid, "current.png")
             result = fn(img, *args)
             save_session_img(sid, result, "current.png")
@@ -678,5 +678,5 @@ if __name__ == "__main__":
     key = cfg.get("gemini_api_key", "")
     if key:
         from modules.gemini_edit import configure
-        configure(key)
+        configure(key, cfg.get("gemini_image_model"), cfg.get("gemini_text_model"))
     app.run(host="127.0.0.1", port=5001, debug=False, threaded=True)
