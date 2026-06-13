@@ -1,0 +1,10 @@
+{
+  "gemini_api_key": "",
+  "nas_input_path": "Z:\\葬儀写真\\原本",
+  "nas_output_path": "Z:\\葬儀写真\\遺影完成",
+  "nas_bg_assets_path": "Z:\\葬儀写真\\背景素材",
+  "video_duration_per_bg": 45,
+  "video_fade_duration": 3,
+  "video_fps": 24,
+  "default_bg_color": "#ffffff"
+}
