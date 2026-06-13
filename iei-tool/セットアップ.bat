@@ -7,20 +7,16 @@ echo  =================================
 echo  初回セットアップを開始します
 echo.
 
-pushd "%~dp0"
-
-:: Python の確認
 python --version >/dev/null 2>&1
 if %errorlevel% neq 0 (
     echo [エラー] Python が見つかりません。
     echo Python 3.10 以上をインストールしてください。
-    echo https://www.python.org/downloads/
     pause
     exit /b 1
 )
 
 echo  Python が見つかりました。仮想環境を作成します...
-python -m venv .venv
+python -m venv "%~dp0.venv"
 if %errorlevel% neq 0 (
     echo [エラー] 仮想環境の作成に失敗しました。
     pause
@@ -28,9 +24,9 @@ if %errorlevel% neq 0 (
 )
 
 echo  パッケージをインストールします（数分かかります）...
-call .venv\Scriptsctivate.bat
+call "%~dp0.venv\Scriptsctivate.bat"
 pip install --upgrade pip -q
-pip install -r requirements.txt
+pip install -r "%~dp0requirements.txt"
 
 echo.
 echo  =================================
@@ -41,5 +37,4 @@ echo  1. config.json を開き Gemini API キーを設定
 echo  2.「起動.bat」をダブルクリックして起動
 echo  =================================
 echo.
-popd
 pause
