@@ -10,7 +10,7 @@ def configure(api_key: str):
     genai.configure(api_key=api_key)
 
 
-def _get_model(name: str = "gemini-2.0-flash-exp"):
+def _get_model(name: str = "gemini-2.0-flash-exp-image-generation"):
     return genai.GenerativeModel(name)
 
 
