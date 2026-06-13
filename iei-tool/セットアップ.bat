@@ -7,7 +7,7 @@ echo  =================================
 echo  初回セットアップを開始します
 echo.
 
-cd /d "%~dp0"
+pushd "%~dp0"
 
 :: Python の確認
 python --version >/dev/null 2>&1
@@ -41,4 +41,5 @@ echo  1. config.json を開き Gemini API キーを設定
 echo  2.「起動.bat」をダブルクリックして起動
 echo  =================================
 echo.
+popd
 pause
