@@ -57,7 +57,7 @@ function setPreview(url, withCompare = false) {
   } else {
     cw.classList.remove("visible");
     img.style.display = "block";
-    img.src = url + "?t=" + Date.now();
+    img.src = url + "&t=" + Date.now();
   }
 }
 
