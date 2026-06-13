@@ -1,23 +1,23 @@
 @echo off
 chcp 65001 >/dev/null
-title ã²ã™ã„é‡Žãƒ´ã‚£ãƒ© éºå½±å†™çœŸä½œæˆãƒ„ãƒ¼ãƒ«
+title ‚Ð‚·‚¢–ìƒ”ƒBƒ‰ ˆâ‰eŽÊ^ì¬ƒc[ƒ‹
 
 cd /d "%~dp0"
 
-:: ä»®æƒ³ç’°å¢ƒã®ç¢ºèª
-if not exist ".venv\Scripts\activate.bat" (
-    echo [ã‚¨ãƒ©ãƒ¼] ã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—ãŒå®Œäº†ã—ã¦ã„ã¾ã›ã‚“ã€‚
-    echo ã€Œã‚»ãƒƒãƒˆã‚¢ãƒƒãƒ—.batã€ã‚’å…ˆã«å®Ÿè¡Œã—ã¦ãã ã•ã„ã€‚
+:: ‰¼‘zŠÂ‹«‚ÌŠm”F
+if not exist ".venv\Scriptsctivate.bat" (
+    echo [ƒGƒ‰[] ƒZƒbƒgƒAƒbƒv‚ªŠ®—¹‚µ‚Ä‚¢‚Ü‚¹‚ñB
+    echo uƒZƒbƒgƒAƒbƒv.batv‚ðæ‚ÉŽÀs‚µ‚Ä‚­‚¾‚³‚¢B
     pause
     exit /b 1
 )
 
-call .venv\Scripts\activate.bat
+call .venv\Scriptsctivate.bat
 
-:: ãƒ–ãƒ©ã‚¦ã‚¶ã‚’èµ·å‹•ï¼ˆFlask ã®èµ·å‹•ã‚’å°‘ã—å¾…ã¤ï¼‰
+:: ƒuƒ‰ƒEƒU‚ð‹N“®iFlask ‚Ì‹N“®‚ð­‚µ‘Ò‚Âj
 start "" /b cmd /c "timeout /t 2 /nobreak >/dev/null && start http://localhost:5001"
 
-echo  èµ·å‹•ä¸­...ãƒ–ãƒ©ã‚¦ã‚¶ãŒé–‹ãã¾ã§ãŠå¾…ã¡ãã ã•ã„ã€‚
-echo  çµ‚äº†ã™ã‚‹ã«ã¯ã“ã®ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’é–‰ã˜ã‚‹ã‹ Ctrl+C ã‚’æŠ¼ã—ã¦ãã ã•ã„ã€‚
+echo  ‹N“®’†...ƒuƒ‰ƒEƒU‚ªŠJ‚­‚Ü‚Å‚¨‘Ò‚¿‚­‚¾‚³‚¢B
+echo  I—¹‚·‚é‚É‚Í‚±‚ÌƒEƒBƒ“ƒhƒE‚ð•Â‚¶‚é‚© Ctrl+C ‚ð‰Ÿ‚µ‚Ä‚­‚¾‚³‚¢B
 echo.
 python app.py
