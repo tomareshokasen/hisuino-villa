@@ -259,9 +259,12 @@ def upload():
 @app.route("/session/<sid>/preview")
 def session_preview(sid):
     name = request.args.get("name", "current.png")
-    data = preview_bytes(sid, name)
-    mime = "image/png" if name.endswith(".png") or load_session_img(sid, name).mode == "RGBA" else "image/jpeg"
-    return Response(data, mimetype=mime)
+    from modules.enhance import preview_resize, to_jpeg_bytes, to_png_bytes
+    img = load_session_img(sid, name)
+    img = preview_resize(img, 1200)
+    if img.mode == "RGBA":
+        return Response(to_png_bytes(img), mimetype="image/png")
+    return Response(to_jpeg_bytes(img), mimetype="image/jpeg")
 
 
 # ---------------------------------------------------------------------------
