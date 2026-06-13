@@ -1,13 +1,4 @@
-import json
-import math
-from pathlib import Path
-
 from PIL import Image
-
-
-def load_sizes(path: str = "sizes.json") -> list:
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
 
 
 def mm_to_px(mm: float, dpi: int) -> int:

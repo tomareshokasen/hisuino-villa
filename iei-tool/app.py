@@ -125,14 +125,6 @@ def save_session_img(sid: str, img: Image.Image, name: str = "current.png"):
         img.convert("RGB").save(path, format="JPEG", quality=92)
 
 
-def preview_bytes(sid: str, name: str = "current.png") -> bytes:
-    from modules.enhance import preview_resize, to_jpeg_bytes, to_png_bytes
-    img = load_session_img(sid, name)
-    img = preview_resize(img, 1200)
-    if img.mode == "RGBA":
-        return to_png_bytes(img)
-    return to_jpeg_bytes(img)
-
 
 # ---------------------------------------------------------------------------
 # Routes: UI
@@ -437,10 +429,10 @@ def remove_others(sid):
 
 @app.route("/session/<sid>/snapshot", methods=["POST"])
 def snapshot(sid):
-    """Save current.png as before.png for before/after comparison."""
     src = session_dir(sid) / "current.png"
     dst = session_dir(sid) / "before.png"
-    shutil.copy2(src, dst)
+    if src.exists():
+        shutil.copy2(src, dst)
     return jsonify({"ok": True})
 
 
@@ -518,7 +510,7 @@ def print_a3nobi(sid):
     bg_color = body.get("bg_color", "#ffffff")
     sizes = load_sizes()
 
-    from modules.compose import compose_portrait, get_pixel_size
+    from modules.compose import compose_portrait
     from modules.print_layout import build_a3nobi
     from modules.enhance import to_jpeg_bytes
 
@@ -635,7 +627,8 @@ def upload_bg(sid):
     files = request.files.getlist("files")
     saved = []
     for f in files:
-        name = f"bg_{uuid.uuid4().hex[:6]}_{Path(f.filename).suffix or '.jpg'}"
+        suffix = Path(f.filename).suffix or ".jpg"
+        name = f"bg_{uuid.uuid4().hex[:6]}{suffix}"
         path = session_dir(sid) / name
         f.save(str(path))
         saved.append(name)

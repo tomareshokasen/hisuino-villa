@@ -634,6 +634,14 @@ function downloadVideo() {
   window.location = `/session/${state.sessionId}/download_video?filename=${encodeURIComponent(fname)}`;
 }
 
+// ── Output tab switching ──────────────────────────────
+function switchOutputTab(mode, el) {
+  qsa(".output-tab").forEach(t => t.classList.remove("active"));
+  el.classList.add("active");
+  qsa(".output-tab-content").forEach(c => c.classList.remove("active"));
+  qs(`#out-tab-${mode}`).classList.add("active");
+}
+
 // ── Before/After comparison slider ───────────────────
 function initCompareSlider() {
   const wrap = qs("#compare-wrap");
